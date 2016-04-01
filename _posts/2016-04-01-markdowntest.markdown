@@ -16,3 +16,11 @@ tell application "Fo"
 	        end tell
 
 ```
+
+```ruby
+def foo
+  puts 'foo'
+  end
+
+```
+
