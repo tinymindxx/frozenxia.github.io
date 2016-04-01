@@ -8,7 +8,7 @@ exclude_from_nav: true
 <img src="https://avatars2.githubusercontent.com/u/8794792?v=3&s=180">
 
 <br>
-Spaghetti-san a.k.a. Axl Yody
+#Spaghetti-san a.k.a. Axl Yody
 
 
 I am Axl, a UI Designer, Front End Developer, Illustrator, and of course Anime and Visual Novel lovers from Indonesian.
