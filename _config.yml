@@ -13,17 +13,17 @@ baseurl: ""
 
 
 
-title: "RainyAlley"
-email: "dubuyuye@yeah.net"
+title: "frozenxia"
+email: "frozenxia@hotmail.com"
 description: "Developer"
-github_username:  "dubuyuye"
+github_username:  "frozenxia"
 swiftype_searchId: "ncwR9a8S9CTx2q9SgsJm"
-disqus_shortname: "rainyalley"
+disqus_shortname: "frozenxia"
 
 
 
-url: "http://blog.rainyalley.com"
-imgrepo: "http://blog.rainyalley.com/static/img"
+url: "http://frozenxia.github.io"
+imgrepo: "http://frozenxia.github.io/static/img"
 
 
 #url: "http://127.0.0.1:4000"
