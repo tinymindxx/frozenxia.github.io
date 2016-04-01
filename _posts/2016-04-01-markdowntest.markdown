@@ -10,7 +10,9 @@ tags:
 
 Here is an example of AppleScript:
 
- ```   tell application "Fo"
+```c   
+tell application "Fo"
             beep
 	        end tell
 
+```
