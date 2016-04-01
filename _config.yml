@@ -9,7 +9,7 @@
 title: frozenxia
 email: frozenxia@hotmail.com
 description: > # this means to ignore newlines until "baseurl:"
-  All about Spaghetti-san Project
+  All about frozenxia Project
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://frozenxia.github.io" # the base hostname & protocol for your site
 twitter_username: frozenxia
