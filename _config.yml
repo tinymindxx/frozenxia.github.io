@@ -36,6 +36,8 @@ redcarpet:
       - strikethrough
       - autolink
       - tables
+      - highlight
+      - prettify
 # Archive
 jekyll-archives:
   enabled: []
