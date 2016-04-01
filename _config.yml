@@ -25,8 +25,17 @@ gems:
 paginate: 5
 paginate_path: "page/:num"
 # Build settings
-markdown: kramdown
+#markdown: kramdown
+#styles
 highlighter: pygments
+markdown: redcarpet
+redcarpet:
+  extensions:
+      - fenced_code_blocks
+      - no_intra_emphasis
+      - strikethrough
+      - autolink
+      - tables
 # Archive
 jekyll-archives:
   enabled: []
