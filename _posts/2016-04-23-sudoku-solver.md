@@ -4,8 +4,9 @@ title: Sudoku Solver
 tags: java algorithm 
 categories: algorithm
 ---
-sudoku solver的思路很直接，但是一开始没有处理好递归如何进行下去的。要解决这个问题，就需要有一种方法可以有效的遍历完整个数组，可以采用将二维数组转换成一维数组的方式，这样就可以进行深度递归了，深度递归的时候，着眼于解决当前cell的value选择。这个思路的代码如下所示：
-```java
+sudoku solver的思路很直接，但是一开始没有处理好递归如何进行下去的。要解决这个问题，就需要有一种方法可以有效的遍历完整个数组，可以采用将二维数组转换成一维数组的方式，这样就可以进行深度递归了，深度递归的时候，着眼于解决当前cell的value选择。这个思路的代码如下所示.
+
+``` java
 public class Solution {
 	public void solveSudoku(char[][] board) {
 		helper(board,0);
@@ -42,9 +43,12 @@ public class Solution {
 	}
 
 }
+
 ```
-除了这种思路意外，从discuss上面还看到了另外一种思路，就是直接每次都遍历整个二维数组，进行深度递归。深度递归着眼于解决整个sudoku。具体代码如下：
-```java
+除了这种思路意外，从discuss上面还看到了另外一种思路，就是直接每次都遍历整个二维数组，进行深度递归。深度递归着眼于解决整个sudoku。具体代码如下
+
+
+``` java
 public class Solution {
 	public void solveSudoku(char[][] board) {
 		if(board == null || board.length == 0)
