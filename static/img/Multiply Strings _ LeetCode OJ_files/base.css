@@ -1,0 +1,45 @@
+/***
+ * Styles for all pages of LeetCode
+ */
+
+/*====================
+  faq / contribute
+ *====================*/
+
+.question-section {
+    font-size: 16px;
+    margin: 40px 0;
+}
+
+.question-section img {
+    box-sizing: border-box;
+    margin: 10px 0 20px;
+    width: 100%;
+    box-shadow: 4px 4px 10px #888;
+}
+
+.question-section blockquote {
+    font-size: 20px;
+    font-style: italic;
+}
+
+.question-section p {
+    margin-left: 25px;
+}
+
+.lower-alpha {
+    margin: 20px 0;
+    list-style-type: lower-roman;
+}
+
+.lower-alpha pre {
+    margin: 10px 0;
+}
+
+/*====================
+  submission_table
+ *====================*/
+
+.status-accepted {
+  color: #3c763d;
+}

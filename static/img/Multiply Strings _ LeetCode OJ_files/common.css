@@ -1,0 +1,47 @@
+.top-buffer {
+  margin-top:20px;
+}
+
+.ng-fade {
+  opacity: 1;
+}
+
+.ng-fade.ng-hide {
+  opacity: 0;
+}
+
+.ng-fade.ng-hide-remove{
+  animation: fadeInLeft 1s;
+}
+
+.invisible {
+  visibility: hidden
+}
+
+.visible {
+  visibility: visible;
+}
+
+.notransition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  -ms-transition: none !important;
+  transition: none !important;
+}
+
+a.menu_links {
+    cursor: pointer;
+}
+
+p.comment {
+  color: darkgray;
+}
+
+p.comment a {
+  color: lightskyblue;
+}
+
+.btn.disabled {
+  pointer-events: auto;
+}
