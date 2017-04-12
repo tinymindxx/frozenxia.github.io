@@ -4,6 +4,7 @@ title: string matching
 tags: algorithm
 categories: algorithm
 ---
+
 ## 后缀树
 &emsp;&emsp;后缀树可以用来快速的进行查找。
 <br>
