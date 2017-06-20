@@ -22,6 +22,8 @@ Merkel tree能够快速的计算出多个数据块形成的数据的HASH值，�
 
 ## Bitcoin的关键技术点
 
+![runtime][png7]
+
 
 ### bitcoin整体架构图
 
@@ -91,7 +93,6 @@ bitcoin是第一种能够进行分布式记账的数字货币，它代表了一�
 
 ### 关于bitcoin的思考
 bitcoin要成为能够广泛应用的货币，需要给参与的矿工足够的激励，同时，也需要防止一开始域外计算能力对整个bitcoin的攻击。加入整个bitcoin的计算能力为W，如果域外的计算能力为2W，那么2W可以很轻松地去伪造假的数据链。事实上，区块链的难度调整时间为2015个块链的计算速度，在bitcoin网络运行的早期，是可以进行攻击的。一旦运行的时间越来越长，基本上就不可能进行攻击的。为了避免这种攻击，可以在将整个网络暴露出来之前，先进行长时间的运算，同时需要将整个bitcoin的开始点的hash值写入协议中。<br>
-
 bitcoin不仅仅是一种新型的货币，更是一种新型的信任关系。这种信任关系有助于社会的更小力度的结合，在冯.诺依曼的元包理论中，元包的无序运动会产生四种结构：<br>
 
 * 整体布朗运动 
@@ -108,3 +109,4 @@ bitcoin不仅仅是一种新型的货币，更是一种新型的信任关系。�
 [png4]: {{"/bt/bt-4.png" | prepend: site.imgrepo }}
 [png5]: {{"/bt/bt-5.png" | prepend: site.imgrepo }}
 [png6]: {{"/bt/bt-6.png" | prepend: site.imgrepo }}
+[png7]: {{"/bt/bt-7.png" | prepend: site.imgrepo }}
