@@ -88,18 +88,26 @@ blockquote {
 
 
 
-.headline, .post-headline {
-    font-size: 2em;
+.headline {
+    font-size: 3em;
     margin-bottom: 0.5em;
     
         @include media-query($on-palm) {
             font-size: 2em;
         }
     }
+.post-headline {
+    font-size: 2em;
+    margin-bottom: 0.5em;
 
+        @include media-query($on-palm) {
+            font-size: 2em;
+        }
+    }
 
 /* Home Button */
 .home {
+
     background-image: url(../images/left-arrow.svg);
     background-repeat: no-repeat;
     height: 40px;
