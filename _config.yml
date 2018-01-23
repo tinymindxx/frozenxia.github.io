@@ -9,7 +9,7 @@ email: frozenxia@email.com
 highlighter: rouge
 markdown: kramdown
 ### exclude the instructions / write-up in the README.md
-paginate: 5
+#paginate: 5
 
 # Tracker
 #analytics: UA-83979019-1
