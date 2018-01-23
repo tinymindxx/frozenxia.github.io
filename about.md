@@ -1,5 +1,5 @@
 ---
-title: About Hagura
+title: About
 layout: post
 permalink: /about/
 published: true
