@@ -149,8 +149,11 @@ The computation of the derivative is necessary, because to correct the weights i
 <br>
 
 
-The coefficient   h  affects the speed of learning the network. 
+The coefficient   **h**  affects the speed of learning the network. 
 There are several methods for selecting this parameter. 
 The first way is to start the learning process with a large value of the parameter h. During correction of weight coefficients, the parameter is gradually reduced. 
 The second is a more complex method of training, begins with a small value of the parameter h. In the learning process, the parameter increases, and then decreases again at the final stage of training. 
 Beginning of the educational process with a low value of the parameter h makes it possible to determine the sign of the weighting coefficients. 
+
+
+- reference : http://robocraft.ru/blog/algorithm/560.html
