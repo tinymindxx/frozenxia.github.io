@@ -3,7 +3,6 @@ layout: post
 title : Neural network - training INS using the back propagation algorithm
 ---
 
-# Neural network - introduction
 
 #### The principle of learning a multilayer neural network using the back propagation algorithm
 Consider the learning process of a neural network using the backpropagation algorithm . 
@@ -108,7 +107,8 @@ When the magnitude of the signal error is calculated for each neuron, you can ad
 In the formulas below df (e) / de - is a derivative of the neuron activation function (whose weighting factors are adjusted).
 as remember, for the activation function of the sigmoid type 
 
-```        1
+```   
+          1
 S(x) = -----------
        1 + exp(-x)
 ```
@@ -149,7 +149,7 @@ The computation of the derivative is necessary, because to correct the weights i
 <br>
 
 
-The coefficient ** h ** affects the speed of learning the network. 
+The coefficient   h  affects the speed of learning the network. 
 There are several methods for selecting this parameter. 
 The first way is to start the learning process with a large value of the parameter h. During correction of weight coefficients, the parameter is gradually reduced. 
 The second is a more complex method of training, begins with a small value of the parameter h. In the learning process, the parameter increases, and then decreases again at the final stage of training. 
