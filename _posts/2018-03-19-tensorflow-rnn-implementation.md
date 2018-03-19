@@ -2,7 +2,7 @@
 layout: post
 ---
 
- ##  RNN模型
+##  RNN模型
 
 ### 状态转移函数
  
