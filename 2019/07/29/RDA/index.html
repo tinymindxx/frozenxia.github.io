@@ -1,0 +1,781 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="machine learning,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&amp;lt; g_{\tau},w&amp;gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \r">
+<meta name="keywords" content="machine learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RDA">
+<meta property="og:url" content="http://yoursite.com/2019/07/29/RDA/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&amp;lt; g_{\tau},w&amp;gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \r">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.449Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RDA">
+<meta name="twitter:description" content="Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&amp;lt; g_{\tau},w&amp;gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \r">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> RDA | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                RDA
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-07-29T20:03:50+08:00" content="2019-07-29">
+              2019-07-29 20:03
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/07/29/RDA/" class="leancloud_visitors" data-flag-title="RDA">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:<br>$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&lt; g_{\tau},w&gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \right\}\tag{1}$$<br><a id="more"></a><br>其中,$h(w)$是一个辅助强convex函数,$\{\beta_{t}\}_{t\geq 1}$是一个非负且非递减的序列,决定了算法的收敛特性.在每一轮迭代过程中$(1)$式会最小化三个部分的和:(1)对之前的次梯度进行平均的线性部分;(2)原始的正则函数$\Psi (w)$;(3)附加的强convex正则模块$\frac{\beta_{t}}{t}h(w)$.</p>
+<h3 id="l-1-RDA"><a href="#l-1-RDA" class="headerlink" title="$l_1$-RDA"></a>$l_1$-RDA</h3><p>令$\Psi(w)=\lambda |w|_1,\lambda &gt;0,h(w)=\frac{1}{2}|w|_{2}^{2},\beta_{t}=\gamma \sqrt{t}$,代入公式$(1)$中,有:<br>$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&lt; g_{\tau},w&gt;+ \lambda |w|_1+ \frac{\gamma}{2\sqrt{t}}|w|_{2}^{2} \right\}\tag{2}$$<br>我们可以将公式(2)分解到每一个维度上,有<br>$$w_{t+1}^{(i)}=\underset{w}{argmin}\left\{ \bar{g_{\tau}}^{(i)}w^{(i)}+ \lambda |w^{(i)}|_1+ \frac{\gamma}{2\sqrt{t}} {w^{(i)}}^{2}\right\}\tag{3}$$<br>其中$\bar{g_{\tau}}^{(i)}=\frac{1}{t} \sum_{\tau=1}^{t}g_{\tau}^{(i)}$.考虑<br>$$\underset{w\in \mathbb{R}}{minimize} \;\eta_{t}w+\lambda_{t}|w|+\frac{\gamma_{t}}{2}w^2\tag{4}$$<br>,其中$\lambda_{t}&gt;0$,$\gamma_{t}&gt;0$,$\eta_{t}$为任意值,当存在$\xi\in\partial|w^*|$时,满足$(3)$的$w^*$存在:<br>$$\eta_t + \lambda_t\xi + \gamma_tw^*=0\tag{5}$$</p>
+<p>$|w|$的次梯度为:<br>$$<br>\partial |w|=\begin{cases}<br>\{ \xi \in \mathbb{R} | -1 \leq \xi \leq 1 \} &amp;if \, w=0 \cr<br>\{1\}&amp;if \, w&gt;0  \cr<br>\{-1\}&amp;if \, w&lt;0<br>\end{cases}<br>$$<br>对$(5)$分三种情况讨论:</p>
+<ol>
+<li><p>如果$|\eta_t| \leq \lambda_t$,那么$w^*=0,\xi=-\eta_t/\lambda_t\in\partial|0|$,满足公式$(5)$.可以证明其他情况下,无法满足$(5)$.如果$w&gt;0$,则$\xi=1$,可以得到$\eta_t+\lambda_t+\gamma_t w &gt; \eta_t+\lambda_t \geq 0$,不满足$(5)$;如果$w&lt;0$, 则$\xi=-1$,可以得到$\eta_t-\lambda_t+\gamma_t w &lt; \eta_t-\lambda_t \leq 0$,不满足$(5)$,所以$w^*=0,\xi=-\eta_t/\lambda_t\in\partial|0|$</p>
+</li>
+<li><p>如果$\eta_t &gt; \lambda_t &gt; 0$,公式$(5)$可得$w^*=-\frac{1}{\gamma_t}(\eta_t+\lambda_t\xi)$,所以$w^*&lt;0$,且$\xi=-1$,因此:<br>$$w^*=-\frac{1}{\gamma_t}(\eta_t-\lambda_t)$$</p>
+</li>
+<li><p>如果$\eta_t &lt; \lambda_t &lt; 0$,公式$(5)$可得$w^*=-\frac{1}{\gamma_t}(\eta_t+\lambda_t\xi)$,所以$w^*&gt;0$,且$\xi=1$,因此:<br>$$w^*=-\frac{1}{\gamma_t}(\eta_t+\lambda_t)$$</p>
+</li>
+</ol>
+<p>宗上所述,可以得到:</p>
+<p>$$<br>w^*=\begin{cases}<br>0 &amp;if \, |\eta_t| \leq \lambda_t \cr<br>-\frac{1}{\gamma_t}(\eta_t-\lambda_t sign(\eta_t))&amp;if \, otherwise<br>\end{cases} \tag{6}<br>$$</p>
+<p>对比公式(3),(4),(6),我们可以得到$l_1$-RDA的更新策略为:</p>
+<p>$$<br>w^*=\begin{cases}<br>0 &amp;if \, |\bar{g_{\tau}}^{(i)}| \leq \lambda \cr<br>-\frac{\sqrt{t}}{\gamma_t}(\bar{g_{\tau}}^{(i)}-\lambda sign(\bar{g_{\tau}}^{(i)}))&amp;if \, otherwise<br>\end{cases} \tag{7}<br>$$</p>
+<h3 id="l-1-RDA与FOBOS-Truncated-Gradient的关系"><a href="#l-1-RDA与FOBOS-Truncated-Gradient的关系" class="headerlink" title="$l_1$-RDA与FOBOS,Truncated Gradient的关系"></a>$l_1$-RDA与FOBOS,Truncated Gradient的关系</h3><p>FOBOS包含以下两部分更新策略:<br>$$w_{t+\frac{1}{2}}=w_{t}-\eta_{t}g_{t}^{f}\tag{8}$$<br>$$w_{t+1}=\underset{w}{argmin} \left \{\frac{1}{2}||w-w_{t+\frac{1}{2}}||^2  + \eta_{t+\frac{1}{2}}r(w) \right \}\tag{9}$$<br>为了方便与RDA作比较,对(8),(9)作等价变形之后得到:<br>$$<br>w_{t+1}=\underset{w}{argmin} \left \{ &lt; g_t,w&gt; +  \Psi(w) + \frac{1}{2\alpha_t}||w-w_{t}||^2  \right \}\tag{10}<br>$$<br>其中,$\Psi(w)=r(w),\alpha_t=\eta_{t+\frac{1}{2}}$.之所以(10)与(8)(9)等价,是因为都是为了求最小值时$w$的取值,所以会对(10)和(9)求偏导数,可以看到求偏导数之后两者是等价的.<br>对比(10)与(1),可以看出RDA与FOBOS有以下差别:a)RDA使用的是$\bar{g_{\tau}}$ ,FOBOS用的是$g_t$; b)RDA使用了一个全局近似函数$h(w)$,比如$h(w)=\frac{1}{2}\|w\|_2^2$,而FOBOS使用的是Bregman divergence $\frac{1}{2}\|w-w_t\|_2^2$;c)FOBOS和RDA使用的系数也不大相同;<br>从 <a href="http://frozenxia.github.io/2019/07/26/FOBOS/" target="_blank" rel="noopener">FOBOS</a>这篇文章中可以知道,FOBOS可以当作时Truncated Gradient的一种特例,因此RDA与Truncated Gradient的差异也是类似的.<br>从(7)以及FOBOS中的更新公式我们可以看出,RDA的截断条件是比FOBOS更加激进的.FOBOS的截断条件$|w_{t}-\eta_{t}g_{t}^{f}| \leq \eta_{t+\frac{1}{2}}.\lambda$中,$\eta_{t+\frac{1}{2}}$通常会被设置成一个与$t$相关的函数,例如:$\eta=\Theta(\frac{1}{\sqrt{t}})$,这就导致随着时间的增长,$\eta$会逐渐变小,而RDA中的截断条件是一个常数项$\lambda$.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/machine-learning/" rel="tag">#machine learning</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/19/Austerity-The-History-of-A-Dangerous-Idea/" rel="prev">
+                <i class="fa fa-chevron-left"></i> Austerity: The History of A Dangerous Idea
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/26/FOBOS/" rel="next">
+                FOBOS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#l-1-RDA"><span class="nav-number">1.</span> <span class="nav-text">$l_1$-RDA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#l-1-RDA与FOBOS-Truncated-Gradient的关系"><span class="nav-number">2.</span> <span class="nav-text">$l_1$-RDA与FOBOS,Truncated Gradient的关系</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

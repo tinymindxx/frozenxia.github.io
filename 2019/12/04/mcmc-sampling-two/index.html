@@ -1,0 +1,789 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="algorithm,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="上一篇文章中,已经提到了MCMC采样以及M-H改进算法.M-H算法在实际使用过程中,存在两个缺点:需要计算接受率,当系统需要采样多个维度的时候,接受率会变低导致系统收敛速度太慢;另外对于一些高维数据,特征的条件分布是比较好得到的,但是特征的联合分布很难得到.Gibbs采样和HMC(Hamiltonian )就能解决上面的问题.">
+<meta name="keywords" content="algorithm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCMC Sampling(二)">
+<meta property="og:url" content="http://yoursite.com/2019/12/04/mcmc-sampling-two/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="上一篇文章中,已经提到了MCMC采样以及M-H改进算法.M-H算法在实际使用过程中,存在两个缺点:需要计算接受率,当系统需要采样多个维度的时候,接受率会变低导致系统收敛速度太慢;另外对于一些高维数据,特征的条件分布是比较好得到的,但是特征的联合分布很难得到.Gibbs采样和HMC(Hamiltonian )就能解决上面的问题.">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/70323258-4f56ad00-1867-11ea-805e-81cab61b3fcd.png">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.451Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MCMC Sampling(二)">
+<meta name="twitter:description" content="上一篇文章中,已经提到了MCMC采样以及M-H改进算法.M-H算法在实际使用过程中,存在两个缺点:需要计算接受率,当系统需要采样多个维度的时候,接受率会变低导致系统收敛速度太慢;另外对于一些高维数据,特征的条件分布是比较好得到的,但是特征的联合分布很难得到.Gibbs采样和HMC(Hamiltonian )就能解决上面的问题.">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/5286725/70323258-4f56ad00-1867-11ea-805e-81cab61b3fcd.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> MCMC Sampling(二) | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                MCMC Sampling(二)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-12-04T10:03:20+08:00" content="2019-12-04">
+              2019-12-04 10:03
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/12/04/mcmc-sampling-two/" class="leancloud_visitors" data-flag-title="MCMC Sampling(二)">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>上一篇文章中,已经提到了MCMC采样以及M-H改进算法.M-H算法在实际使用过程中,存在两个缺点:需要计算接受率,当系统需要采样多个维度的时候,接受率会变低导致系统收敛速度太慢;另外对于一些高维数据,特征的条件分布是比较好得到的,但是特征的联合分布很难得到.Gibbs采样和HMC(Hamiltonian )就能解决上面的问题.<br><a id="more"></a></p>
+<h3 id="细致平稳条件重解读"><a href="#细致平稳条件重解读" class="headerlink" title="细致平稳条件重解读"></a>细致平稳条件重解读</h3><p>在上一篇文章中我们提到:如果非周期MarkovChain的状态转移矩阵$P$和概率分布$\pi(x)$对于所有的$i,j$都满足:<br>$$<br>    \pi(i) P(i,j) = \pi(j) P(j,i) \tag{1}<br>$$<br>那么我们称$\pi(x)$是状态转移矩阵$P$的平稳分布.M-H中引入接受率使细致平稳条件得到满足,Gibbs采样则是从另一个角度出发.从二维数据分布开始,假设$\pi(x_1,x_2)$是一个二维联合分布,观察第一个维度相同的两个点$A(x_1^{(1)},x_2^{(1)})$, $B(x_1^{(1)},x_2^{(2)})$,下面的两个式子是成立的:<br>$$<br>\pi(x_1^{(1)},x_2^{(1)}) \pi(x_2^{(2)}|x_1^{(1)}) = \pi(x_1^{(1)}) \pi(x_2^{(1)}|x_1^{(1)}) \pi (x_2^{(2)}|x_1^{(1)}) \\<br>\pi(x_1^{(1)},x_2^{(2)}) \pi(x_2^{(1)}|x_1^{(1)}) = \pi(x_1^{(1)}) \pi(x_2^{(2)}|x_1^{(1)}) \pi (x_2^{(1)}|x_1^{(1)}) \tag{2}<br>$$<br>上面等式右端都是相等的,因此:<br>$$<br>\pi(x_1^{(1)},x_2^{(1)}) \pi(x_2^{(2)}|x_1^{(1)}) = \pi(x_1^{(1)},x_2^{(2)}) \pi(x_2^{(1)}|x_1^{(1)}) \tag{3}<br>$$<br>也就是说:<br>$$<br>\pi(A) \pi(x_2^{(2)}|x_1^{(1)}) = \pi(B) \pi(x_2^{(1)}|x_1^{(1)}) \tag{4}<br>$$<br>继续解析上面的细致平稳条件,我们发现在$x_1=x_1^{(1)}$这条直线上,如果用条件状态$\pi(x_2|x_1)$作为MarkovChain的状态转移概率,那么两个点之间的转移是满足细致平稳条件的.同样的,在$x_2 = x_2^{(1)}$这条线上,如果用条件概率分布$\pi(x_1|x_2^{(2)})$作为MarkovChain的状态转移概率,则任意两个点之间的转移也能够得到细致平稳条件.假如有一点$C(x_1^{(2)},x_2^{(1)})$,我们可以的得到:<br>$$<br>\pi(A) \pi(x_1^{(2)}|x_2^{(1)}) = \pi(C) \pi(x_1^{(1)}|x_2^{(1)}) \tag{5}<br>$$</p>
+<p>基于上面的发现,我们可以构造分布$\pi(x_1,x_2)$的MarkovChain的状态转移矩阵P:<br>$$<br>P(A \to B) = \pi(x_2^{(B)}|x_1^{(1)})\; if \; x_1^{(A)} =  x_1^{(B)} = x_{1}^{(1)} \\<br>P(A \to C) = \pi(x_1^{(C)}|x_2^{(1)})\; if \; x_2^{(A)} =  x_2^{(B)} = x_{2}^{(1)} \\<br>P(A \to D) = 0 \; else \tag{6}<br>$$<br>有了上面的状态转移矩阵,我们可以很容易验证在平面上的两个点$E,F$,满足细致平稳条件:<br>$$<br>    \pi(E)P(E \to F) = \pi(F)P(F \to E) \tag{7}<br>$$</p>
+<h3 id="二维Gibbs采样"><a href="#二维Gibbs采样" class="headerlink" title="二维Gibbs采样"></a>二维Gibbs采样</h3><p>根据上面的状态转移矩阵,我们可以得到二维Gibbs的采样,采样过程中需要使用到两个维度之间的条件概率.步骤如下:</p>
+<ol>
+<li>输入平稳分布$\pi(x_1,x_2)$,设定转移次数$n_1$,样本个数$n_2$</li>
+<li>随机初始化状态初始值$x_1^{(0)}$,$x_2^{(0)}$</li>
+<li>$for\;t=0\;to\;n_1+n_2-1:$<br> a)条件分布$P(x_2|x_1^{(t)})$中采样得到$x_2^{t+1}$<br> b)从条件分布$P(x_1|x_2^{t+1})$中采样得到$x_1^{t+1}$</li>
+</ol>
+<p>样本集合$\left\{ (x_1^{t+1},x_2^{t+1}),… \right\}$就是所采得的平稳分布对应的样本;</p>
+<h3 id="二维Gibbs采样例子"><a href="#二维Gibbs采样例子" class="headerlink" title="二维Gibbs采样例子"></a>二维Gibbs采样例子</h3><p>目标采样$\pi$是一个二维整体分布,$Norm(\mu,\sum)$,其中<br>$$\mu=(\mu_1,\mu_2)=(5,-1)$$ </p>
+<p>$$\sum=\left(\begin{matrix}\sigma^2_1 &amp; \rho\sigma_1\sigma_2 \ \rho\sigma_1\sigma_2 &amp; \sigma^2_2 \end{matrix}\right) = \left(\begin{matrix}1 &amp; 1 \ 1 &amp; 4 \end{matrix}\right) $$ </p>
+<p>采样过程中需要的状态转移条件分布为: $$P(x_1|x_2)=Norm(\mu_1+\rho\sigma_1/\sigma_2(x_2-\mu_2),(1-\rho^2)\sigma^2_1)$$ $$P(x_2|x_1)=Norm(\mu_2+\rho\sigma_2/\sigma_1(x_1-\mu_1),(1-\rho^2)\sigma^2_2)$$</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> mpl_toolkits.mplot3d <span class="keyword">import</span> Axes3D </span><br><span class="line"><span class="keyword">from</span> scipy.stats <span class="keyword">import</span> multivariate_normal</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">p_ygivenx</span><span class="params">(x,m1,m2,s1,s2)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> random.normalvariate(m2+rho*s2/s1*(x-m1),(<span class="number">1</span>-rho**<span class="number">2</span>)*s2**<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">p_xgiveny</span><span class="params">(y,m1,m2,s1,s2)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> random.normalvariate(m1+rho*s1/s2*(y-m2),(<span class="number">1</span>-rho**<span class="number">2</span>)*s1**<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">sample_source = multivariate_normal(mean=(<span class="number">5</span>,<span class="number">-1</span>),cov=[[<span class="number">1</span>,<span class="number">0.5</span>],[<span class="number">0.5</span>,<span class="number">2</span>]])</span><br><span class="line">N = <span class="number">5000</span></span><br><span class="line">K = <span class="number">20</span></span><br><span class="line">x_res= []</span><br><span class="line">y_res = []</span><br><span class="line">z_res = []</span><br><span class="line">m1 = <span class="number">5</span></span><br><span class="line">m2 = <span class="number">-1</span></span><br><span class="line">rho=<span class="number">0.5</span></span><br><span class="line">s1 = <span class="number">1</span></span><br><span class="line">s2 = <span class="number">2</span></span><br><span class="line">y = m2</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(N):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(K):</span><br><span class="line">        x = p_xgiveny(y,m1,m2,s1,s2)</span><br><span class="line">        y = p_ygivenx(x,m1,m2,s1,s2)</span><br><span class="line">        z = sample_source.pdf([x,y])</span><br><span class="line">        x_res.append(x)</span><br><span class="line">        y_res.append(y)</span><br><span class="line">        z_res.append(z)</span><br><span class="line">num_bins = <span class="number">50</span></span><br><span class="line">plt.hist(x_res, num_bins, density=<span class="number">1</span>, facecolor=<span class="string">'green'</span>, alpha=<span class="number">0.5</span>)</span><br><span class="line">plt.hist(y_res, num_bins, density=<span class="number">1</span>, facecolor=<span class="string">'red'</span>, alpha=<span class="number">0.5</span>)</span><br><span class="line">plt.title(<span class="string">'Histogram'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://user-images.githubusercontent.com/5286725/70323258-4f56ad00-1867-11ea-805e-81cab61b3fcd.png" alt="image"></p>
+<h3 id="Hamiltonian-Monte-Carlo-Sampling"><a href="#Hamiltonian-Monte-Carlo-Sampling" class="headerlink" title="Hamiltonian Monte Carlo Sampling"></a>Hamiltonian Monte Carlo Sampling</h3><p>Linear Dynamic Systems</p>
+<p><a href="https://colindcarroll.com/2019/04/11/hamiltonian-monte-carlo-from-scratch/" target="_blank" rel="noopener">https://colindcarroll.com/2019/04/11/hamiltonian-monte-carlo-from-scratch/</a><br><a href="https://arxiv.org/pdf/1701.02434.pdf" target="_blank" rel="noopener">https://arxiv.org/pdf/1701.02434.pdf</a></p>
+<p><a href="http://deeplearning.net/tutorial/hmc.html" target="_blank" rel="noopener">http://deeplearning.net/tutorial/hmc.html</a><br><!-- file:///home/mi/Downloads/mlss09uk_murray_mcmc.pdf --><br><a href="http://videolectures.net/site/normal_dl/tag=50736/mlss09uk_murray_mcmc.pdf" target="_blank" rel="noopener">http://videolectures.net/site/normal_dl/tag=50736/mlss09uk_murray_mcmc.pdf</a><br><a href="https://arogozhnikov.github.io/2016/04/28/demonstrations-for-ml-courses.html" target="_blank" rel="noopener">https://arogozhnikov.github.io/2016/04/28/demonstrations-for-ml-courses.html</a><br><a href="https://www.youtube.com/watch?v=hn0Vfzcnmig" target="_blank" rel="noopener">https://www.youtube.com/watch?v=hn0Vfzcnmig</a><br><a href="http://arogozhnikov.github.io/2016/12/19/markov_chain_monte_carlo.html" target="_blank" rel="noopener">http://arogozhnikov.github.io/2016/12/19/markov_chain_monte_carlo.html</a><br><a href="https://arxiv.org/pdf/1206.1901.pdf" target="_blank" rel="noopener">https://arxiv.org/pdf/1206.1901.pdf</a><br><a href="http://www.mcmchandbook.net/HandbookChapter1.pdf" target="_blank" rel="noopener">http://www.mcmchandbook.net/HandbookChapter1.pdf</a><br><a href="http://deeplearning.net/tutorial/hmc.html" target="_blank" rel="noopener">http://deeplearning.net/tutorial/hmc.html</a><br><a href="https://arxiv.org/pdf/1701.02434.pdf" target="_blank" rel="noopener">https://arxiv.org/pdf/1701.02434.pdf</a><br><a href="https://zhuanlan.zhihu.com/p/32315762" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/32315762</a></p>
+<p><a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-30-feedback-control-systems-fall-2010/lecture-notes/MIT16_30F10_lec05.pdf" target="_blank" rel="noopener">https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-30-feedback-control-systems-fall-2010/lecture-notes/MIT16_30F10_lec05.pdf</a><br><a href="https://www.mathworks.com/help/ident/ug/what-are-state-space-models.html" target="_blank" rel="noopener">https://www.mathworks.com/help/ident/ug/what-are-state-space-models.html</a><br><a href="https://www.tutorialspoint.com/control_systems/control_systems_state_space_model.htm" target="_blank" rel="noopener">https://www.tutorialspoint.com/control_systems/control_systems_state_space_model.htm</a><br><a href="https://zhuanlan.zhihu.com/p/30003899" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/30003899</a></p>
+<p><a href="https://colindcarroll.com/2019/04/06/exercises-in-automatic-differentiation-using-autograd-and-jax/" target="_blank" rel="noopener">https://colindcarroll.com/2019/04/06/exercises-in-automatic-differentiation-using-autograd-and-jax/</a></p>
+<p><a href="http://videolectures.net/mlss09uk_murray_mcmc/#" target="_blank" rel="noopener">http://videolectures.net/mlss09uk_murray_mcmc/#</a></p>
+<p><a href="https://colindcarroll.com/2019/04/11/hamiltonian-monte-carlo-from-scratch/" target="_blank" rel="noopener">https://colindcarroll.com/2019/04/11/hamiltonian-monte-carlo-from-scratch/</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/algorithm/" rel="tag">#algorithm</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/04/quick-sort-with-equal-elements/" rel="prev">
+                <i class="fa fa-chevron-left"></i> quick sort with equal elements
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/02/MCMC-Sampling/" rel="next">
+                MCMC Sampling(一) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#细致平稳条件重解读"><span class="nav-number">1.</span> <span class="nav-text">细致平稳条件重解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二维Gibbs采样"><span class="nav-number">2.</span> <span class="nav-text">二维Gibbs采样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二维Gibbs采样例子"><span class="nav-number">3.</span> <span class="nav-text">二维Gibbs采样例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hamiltonian-Monte-Carlo-Sampling"><span class="nav-number">4.</span> <span class="nav-text">Hamiltonian Monte Carlo Sampling</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

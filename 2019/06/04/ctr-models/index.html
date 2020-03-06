@@ -1,0 +1,792 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="machine learning,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。">
+<meta name="keywords" content="machine learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CTR预测模型">
+<meta property="og:url" content="http://yoursite.com/2019/06/04/ctr-models/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/61364231-01410d00-a8b8-11e9-86dd-e5cc8ec729b0.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/59242535-8a707e80-8c3e-11e9-97d1-1ecf80826628.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/61341740-3595d880-a87a-11e9-9b94-bdae8e43fef8.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/59433632-8bf79d80-8e1c-11e9-9f1c-ec1898eaf500.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/61438793-d8ca1900-a972-11e9-9027-10725245cdc8.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/61446712-30bc4c00-a982-11e9-8c7b-f30597a8466e.png">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.450Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CTR预测模型">
+<meta name="twitter:description" content="CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/5286725/61364231-01410d00-a8b8-11e9-86dd-e5cc8ec729b0.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> CTR预测模型 | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                CTR预测模型
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-06-04T11:38:50+08:00" content="2019-06-04">
+              2019-06-04 11:38
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/06/04/ctr-models/" class="leancloud_visitors" data-flag-title="CTR预测模型">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。<br><a id="more"></a></p>
+<h3 id="Logistic-Regression"><a href="#Logistic-Regression" class="headerlink" title="Logistic Regression"></a>Logistic Regression</h3><p>LR模型（Logistic Regression）可以理解为在线性回归的基础上，对结果使用logistic函数作变形。Logistic函数的形式为:<br>$$\phi(z)=\frac{1}{1+e^{-z}}$$<br>Logistic函数将线性回归的值域限定在$[0,1]$范围之内,函数在两端非常不敏感($x&lt;-4||x&gt;4$),因而对噪声具有更好的适应能力.通常logistic的输出值以0.5为界,转换成0,1.机器学习模型实质上就是把决策函数限定在某一具体条件之下,这组条件就决定了模型的假设空间.这组假设通常希望比较简单且合理,逻辑回归的模型假设是:<br>$$P(y=1|x;\theta) = g(\theta^{T}x)=\frac{1}{1+e^{-\theta^{T}*x}}$$<br>模型的数学形式确定之后,就可以求其中的参数了.对LR模型,通常采用最大似然估计,也就是找到使得数据的似然估计(概率)最大的一组参数.LR模型的似然估计可以表示为:<br>$$L(\theta) = P(D|\theta) = \prod P(y|x;\theta)\dots(1)$$<br>其中,$P(y=1|x;\theta)=g(\theta^{T}x),P(y=0|x;\theta)=1-g(\theta^{T}x)$,因此有,$$P(y|x;\theta)=g(\theta^Tx)^{y}(1-g(\theta^Tx))^{1-y}\dots(2)$$<br>将(2)代入(1)中,有$$L(\theta) = P(D|\theta) = \prod g(\theta^Tx)^{y}(1-g(\theta^Tx))^{1-y}$$<br>取对数得到:<br>$$l(\theta) =  \sum y\log g(\theta^Tx)+(1-y)\log(1-g(\theta^Tx))$$<br>$l(\theta)$就是LR的对数似然函数.寻找合适的$\theta$就是寻找使得$l(\theta)$最大的$\theta$.<br>LR模型实际使用的损失函数是cross-entropy函数,亦即:<br>$$J(\theta)=\frac{1}{m}\sum_{i=1}^{m}Cost(g{\theta^Tx^{(i)}},y^{(i)})=-\frac{1}{m}\sum_{i=1}^{m} y^{(i)}\log g(\theta^Tx^{(i)})+(1-y^{(i)})\log(1-g(\theta^Tx^{(i)}))$$<br>可以看出,当$l(\theta)$最大时,$J(\theta)$最小.<strong>LR也可以采用其他的损失函数,但是我们不应该使用MSE,MSE导致损失函数非凸,存在多个局部最小点.</strong>采用cross-entropy作为损失函数有一个好处,不论y=1还是y=0,函数都是单调的.<br><img src="https://user-images.githubusercontent.com/5286725/61364231-01410d00-a8b8-11e9-86dd-e5cc8ec729b0.png" alt="image"></p>
+<p><strong>这里需要强调一点,上面推导出来的对数似然函数也可以看作是一种损失函数,它也是模型的goodness of fit的指标.</strong><br>采用cross-entropy作为损失函数,那么LR模型的参数更新过程为:<br>$$<br>\begin{equation}<br>\begin{split}<br>\frac{\partial J(t)}{\partial t}&amp;=\frac{\partial(y \log g(t) + (1-y)\log (1-g(t)))}{\partial t}\\<br>&amp;=y\frac{g’(t)}{g(t)} \partial t + (1-y)\frac{-g’(t)}{1-g(t)} \partial t<br>\end{split}<br>\end{equation}<br>\dots(3)<br>$$<br>由于,$g(t)=\frac{1}{1+e^{-t}}$,因此$g’(t)=g(t)(1-g(t)) \dots(4)$</p>
+<p>(4)代入(3),得到<br>$$<br>\begin{equation}<br>\begin{split}<br>\frac{\partial J(t)}{\partial t}&amp;=y-g(t)<br>\end{split}<br>\end{equation}<br>\dots(3)<br>$$<br>所以,$\frac{\partial J(\theta)}{\partial \theta }=(y-g(\theta^Tx))x$ $\theta$迭代更新的公式为:<br>$$\theta_{i+1} := \theta_{i} + \alpha((y^{(i+1)}-g(\theta^Tx^{(i+1)}))x^{(i+1)})$$<br>通常LR的迭代方法有SGD,BFGS或者FTRL等,迭代优化算法不在此展开了.</p>
+<h3 id="Factorization-Machine"><a href="#Factorization-Machine" class="headerlink" title="Factorization Machine"></a>Factorization Machine</h3><p>FM（Factorization Machine）模型是Steffen Rendle提出来的，主要目的是解决现有模型无法有效的捕捉变量之间的复杂关系。CTR预测需要用到很多分类变量，如性别、地域，通常对这些任务的处理办法是One-hot。One-hot之后会导致输入维度变大并且稀疏，为了计算方便，多数的的模型都是非常浅层的，例如LR。浅层模型比较难以发觉变量之间的关系以及非线性关系，因此需要对不同的变量进行交叉，这种交叉直接使得输入的维度变成百万级别。<br>2阶FM模型的方程为：<br>$$\hat{y}(x):=w_{0}+\sum_{i=1}^{n}w_{i}x_{i}+\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}$$<br>对上述方程进行展开之后，可以得到：<br>$$<br>\begin{array}<br>\\<br>\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}<br>\\<br>= \frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j} - \frac{1}{2}\frac{1}{2}\sum_{i=1}^{n}&lt;v_{i},v_{i}&gt;x_{i}x_{i}<br>\\<br>=\frac{1}{2}(\sum_{i=1}^{n}\sum_{j=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{j,f}x_{i}x_{j} -\sum_{i=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{i,f}x_{i}x_{i})<br>\\<br>= \frac{1}{2}\sum_{f=1}^{k}\lgroup(\sum_{i=1}^{n}v_{i,f}x_{i})^2-\sum_{i=1}^{n}(v_{i,f}x_{i})^2\rgroup<br>\end{array}<br>$$<br>这样，FM的计算就变成了线性了。要求解$v_i，w_0,w_i$，可以通过SGD等方式进行计算。$\hat{y}$关于$v_i，w_0,w_i$的导数为：</p>
+<p>$$<br>\begin{equation}<br>\frac{\partial}{\partial\theta}\hat{y}(x)=<br>\begin{cases}<br>1&amp; \text{if }\theta\text{ is }w_0\\<br>x_i&amp; \text{if }\theta\text{ is }w_i \\<br>x_i\sum_{j=1}^{n}v_{i,f}x_j-v_{i,f}x_i&amp; \text{if }\theta\text{ is }v_{i,f} \\<br>\end{cases}<br>\end{equation}<br>$$</p>
+<h3 id="DeepFM"><a href="#DeepFM" class="headerlink" title="DeepFM"></a>DeepFM</h3><p>DeepFM结合了FM模型和DNN模型,FM模型和DNN模型<strong>共享Embedding层且同时训练</strong>,其结构如下：<br><img src="https://user-images.githubusercontent.com/5286725/59242535-8a707e80-8c3e-11e9-97d1-1ecf80826628.png" alt="1"><br>在具体的实现的时候,FM模型中的$v_i*x_i$ 直接被替换成了Embedding层的输出了,由于Embedding曾本身是可以学习的,因此$v_i*x_i$可以直接使用Embedding层的输出替代.</p>
+<h3 id="Wide-amp-Deep"><a href="#Wide-amp-Deep" class="headerlink" title="Wide&amp;Deep"></a>Wide&amp;Deep</h3><p>Wide&amp;Deep模型结合了LR模型和DNN，LR和DNN部分通过联合训练，提高效果。wide&amp;deep模型的联合训练（joint）与集成（ensemble）不一样，联合训练过程中LR和DNN的参数会同时被优化，而集成过程在训练阶段LR和DNN是独立的，只有最终结果被集成在一起。<br>Wide&amp;Deep模型的数学表达式为：<br>$$P(Y=1\|x)=\sigma(w^{T}_{wide}[x,\phi(x)] + w^{T}_{deep}\alpha^{(lf)} +b )$$<br>wide部分最重要的操作是cross-production，也就是特征交叉,数学定义为：<br>$$\phi(x)=\prod_{i=1}^{d}x_{i}^{c_{ki}},c_{ki}\in\{0,1\}$$<br>对于binary变量，交叉结果只有在所有变量都为真的时候才为真，例如AND（gender=female，language=en）只有在gender=female 且 language=en时，才为真。<br>Wide&amp;Deep模型虽然将LR和DNN模型联合训练，但是在变量one-hot或者embedding时都是独立的，我们可以简单理解为Wide&amp;Deep模型只在结果处合并了两个模型（通过+操作），其余部分都是分离的。Wide&amp;Deep模型的结构如下：<br><img src="https://user-images.githubusercontent.com/5286725/61341740-3595d880-a87a-11e9-9b94-bdae8e43fef8.png" alt="wide&amp;deep"><br>可以很明显看出，LR和DNN的输入没有重叠，也就是变量独立进入LR和DNN的,这一点与其他的模型会有不同。<br>Wide&amp;Deep模型的输入数据一般包括两种，分类变量和数值变量。分类变量需要筛除出现次数少于一定频次的变量，数值变量需要对数值进行归一化操作，将值域转换到$[0，1]$范围内。数值变量转换时，通过累计密度函数进行转换，$P(X \leq x)$ 分成N段，第i段归一化之后的值为$\frac{i-1}{n_{q}-1}$.</p>
+<h3 id="PNN"><a href="#PNN" class="headerlink" title="PNN"></a>PNN</h3><p>product-based neural network 通过交叉运算捕获变量之间的复杂关系。Categorical变量经过Embedding操作之后，通过变量之间的交叉运算，得到变量之间的关系。交叉运算包括内积和外积。模型的架构图如下所示：<br><img src="https://user-images.githubusercontent.com/5286725/59433632-8bf79d80-8e1c-11e9-9f1c-ec1898eaf500.png" alt="1"><br>从图中可以看出，核心模块在product这一层。production有两种，内积和外积。<br>$v_i,v_j$的内积为 $&lt;v_i,v_j&gt;=\sum_{i=0}^{k}v_{i,f}*v_{j,f}$,内积层会计算$v_i,v_j$所有的组合，因此共有$N*(N-1)/2$种情况，相关的代码如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">embed_list = inputs</span><br><span class="line"></span><br><span class="line">row = []</span><br><span class="line">col = []</span><br><span class="line">num_inputs = len(embed_list)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(num_inputs - <span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(i + <span class="number">1</span>, num_inputs):</span><br><span class="line">        row.append(i)</span><br><span class="line">        col.append(j)</span><br><span class="line"></span><br><span class="line">p = tf.concat([embed_list[idx] <span class="keyword">for</span> idx <span class="keyword">in</span> row], axis=<span class="number">1</span>)</span><br><span class="line">q = tf.concat([embed_list[idx] <span class="keyword">for</span> idx <span class="keyword">in</span> col], axis=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">inner_product = p * q</span><br></pre></td></tr></table></figure></p>
+<p>对于外积，$pair=N*(N-1)/2,embedding_size=es,batch_size=bn$,有三种情况：</p>
+<ol>
+<li>引入的是matrix，则计算公式为：<br>$P = expand\_ dims(P_{bn,pair,es},axis=1)$<br>$transpose(reduce\_ sum(P_{bn,1,pair,es}*M_{es,pair,es},axis=-1),[0,2,1])*Q_{bn,pair,es}$</li>
+<li>引入的是vec 或者num，计算公式为：</li>
+</ol>
+<p>$P_{bn,pair,es}*Q_{bn,pair,es}*M_{1,pair,(es,1)}$</p>
+<p><strong>PNN存在训练过程不稳定的情况，作者在后续论文中对这个问题进行了进一步的讨论。。。。</strong></p>
+<h3 id="Deep-Cross-Network"><a href="#Deep-Cross-Network" class="headerlink" title="Deep Cross Network"></a>Deep Cross Network</h3><p>Deep Cross Network与DeepFM结构类似,DNN与CrossNetwork共享Embedding层,训练过程中共同优化Embedding层.DCN(Deep Cross Network)结构如下:<br><img src="https://user-images.githubusercontent.com/5286725/61438793-d8ca1900-a972-11e9-9027-10725245cdc8.png" alt="dcn"></p>
+<p>Category变量经过Embeding变换而非One-hot变换,变换之后的Embedding数据会与Dense变量一起,合并成$x_0$.<br>$$x_0=[x_{embed,1}^T,…,x_{embed,k}^T,x_{dense}^T]$$</p>
+<p>Cross Network是整个模型的核心,cross network层层堆叠,对于每一层,都有如下操作:<br>$$x_{l+1} = x_0x_l^Tw_l + b_l + x_l = f(x_l,w_l,b_l) + x_l$$<br>每一层的输入经过特征交叉操作$f$之后,都会重新加上输入$x_l$,交叉函数$f:\mathbb{R}^d \mapsto \mathbb{R}^d$实际上是在拟合$x_{l+1}-x_l$.</p>
+<h3 id="Convolutional-Click-Prediction-Model"><a href="#Convolutional-Click-Prediction-Model" class="headerlink" title="Convolutional Click Prediction Model"></a>Convolutional Click Prediction Model</h3><p>Convolutional Click Prediction Model利用卷积网络处理Embedding之后的特征,配合p-Max Pooling,对CTR进行预估.Category变量通过Embedding转换成输入矩阵$s\in R^{d*n}$,Continuous变量按照文章的实现方式,也是需要作离散化然后Embedding的.<br><img src="https://user-images.githubusercontent.com/5286725/61446712-30bc4c00-a982-11e9-8c7b-f30597a8466e.png" alt="ccpm"><br>CCPM在对Convolutional操作之后的结果进行Pooling时,使用的是p-Max Pooling,也就是提取top_k的数据作为pooling结果.选取top_k参数时,根据以下规则:<br>$$<br>\begin{equation}<br>p_i=\left\{<br>\begin{aligned}<br>(1-(i/l)^{l-i})n&amp;&amp;{i=1,…,l-1}\\<br>3&amp;&amp;&amp;{i=l}<br>\end{aligned}<br>\right.<br>\end{equation}<br>$$</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/machine-learning/" rel="tag">#machine learning</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/07/the-origin-of-wealth/" rel="prev">
+                <i class="fa fa-chevron-left"></i> the origin of wealth(I)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/01/book-review-of-2019Q2/" rel="next">
+                book review of 2019Q2 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Logistic-Regression"><span class="nav-number">1.</span> <span class="nav-text">Logistic Regression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Factorization-Machine"><span class="nav-number">2.</span> <span class="nav-text">Factorization Machine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DeepFM"><span class="nav-number">3.</span> <span class="nav-text">DeepFM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Wide-amp-Deep"><span class="nav-number">4.</span> <span class="nav-text">Wide&amp;Deep</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PNN"><span class="nav-number">5.</span> <span class="nav-text">PNN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deep-Cross-Network"><span class="nav-number">6.</span> <span class="nav-text">Deep Cross Network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Convolutional-Click-Prediction-Model"><span class="nav-number">7.</span> <span class="nav-text">Convolutional Click Prediction Model</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

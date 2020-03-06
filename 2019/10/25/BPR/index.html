@@ -1,0 +1,781 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="machine learning,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.">
+<meta name="keywords" content="machine learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BPR Bayesian Personalized Ranking from Implicit Feedback">
+<meta property="og:url" content="http://yoursite.com/2019/10/25/BPR/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.447Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BPR Bayesian Personalized Ranking from Implicit Feedback">
+<meta name="twitter:description" content="LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> BPR Bayesian Personalized Ranking from Implicit Feedback | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                BPR Bayesian Personalized Ranking from Implicit Feedback
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-10-25T14:39:39+08:00" content="2019-10-25">
+              2019-10-25 14:39
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/10/25/BPR/" class="leancloud_visitors" data-flag-title="BPR Bayesian Personalized Ranking from Implicit Feedback">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.<br><a id="more"></a></p>
+<h3 id="LR评测指标"><a href="#LR评测指标" class="headerlink" title="LR评测指标"></a>LR评测指标</h3><p>在讲BPR之前,首先需要弄明白LR的评测指标是什么.有了评测指标,我们才可以对系统进行有效的评测.给用户$u$推荐的物品列表为$X$,其中每一个$x_i$与用户$u$的关联程度用$rel_i$表示.假设列表最多有$p$个物品,那么累计收益(Comulative Gain)的计算方式为:<br>$$<br>CG_p = \sum_{i=1}^{p} rel_i \tag{1}<br>$$<br>但是$(1)$有个问题,就是对于推荐系统而言,越是在显著位置(靠前)的重要程度越高,因此最好的选择是将最优的推荐结果放在最好的位置.为了体现这一点,我们引入一个衰减比例,或者称为Discounting.这样$(1)$就变成了以下:<br>$$<br>DCG_p = \sum_{i=1}^{p} \left (\frac{rel_i}{\log _2(i+1)} \right) \tag{2}<br>$$<br>$(2)$式也可以换乘其他的形式,当$rel_i \in \{0,1\}$比如:</p>
+<p>$$<br>DCG_p = \sum_{i=1}^{p} \left (\frac{2^{rel_i} -1}{\log _2(i+1)} \right) \tag{3}<br>$$</p>
+<p>$(2)$式有一个缺点,当$p$的个数增多的时候,$DCG_p$会单调增大,不利于$p$值比较小的训练数据.因此需要对$DCG_p$作归一化处理.这里我们假设在特定$p$值下,推荐列表$X$最佳的排列顺序为$IDCG_p$.那么归一化的$DCG_p$为:<br>$$<br>nDCG_p = \frac { \sum_{i=1}^{p} \left (\frac{2^{rel_i} -1}{\log _2(i+1)} \right) } {IDCG_p} \tag{4}<br>$$</p>
+<h3 id="BPR模型"><a href="#BPR模型" class="headerlink" title="BPR模型"></a>BPR模型</h3><p>BPR的基本假设是:</p>
+<pre><code>用户对有过反馈的产品的偏好程度比没有反馈过的产品要高,未反馈的产品包括缺省值和负反馈,反馈包括浏览,点击等.
+</code></pre><p>BPR试图通过用户反馈建立一个完整的偏序关系$&gt;_u$,来确定用户$u$对产品$i$与产品$j$的喜好程度.我们用$X_{|U|*|I|}$来表示$u$与产品$i$之间的反馈关系.通过$X$,我们可以得$(u,i,j),\;u\in U,\; i,j \in I$的集合$D_s$.对于偏序关系$&gt;_u$,当$i,j$有相同的反馈时,偏序关系不确定;正向关系比缺省或者负向关系要大.因此$D_s$又可以定义为:<br>$$<br>D_s := \{(u,i,j) | i \in I_u^+ \land j \in I \setminus I_u^+ \} \tag{5}<br>$$</p>
+<p>用$p(i&gt;_uj|\Theta)$表示$i&gt;_uj$的概率,$\Theta$表示模型的任何参数,$p(\Theta)$是整个系统的先验概率.根据Bayesian公式$p(y|x)=\frac{p(x|y)p(y)}{p(x)}$ 可以得到$p(\Theta|&gt;_u) = \frac{p(&gt;_u|\Theta) p(\Theta)}{ p(&gt;_u)}$.由于$p(&gt;_u)$是用户相关的概率,<strong>假设所有用户的行为都是独立的</strong>,因此<br>$$p(\Theta|&gt;_u) \propto p(&gt;_u|\Theta) p(\Theta) \tag{6}$$</p>
+<p><strong>我们还假设对用户$u$每一对物品$(i,j)$的关系与其他的物品是独立的.</strong>所以我们有:</p>
+<p>$$<br>\prod_{u \in U} p(&gt;_u|\Theta) = \prod _{(u,i,j) \in U\times I \times I}p(i&gt;_uj|\Theta)^{\delta((u,i,j)\in D_s)}. (1-p(i&gt;_uj|\Theta))^{\delta((u,j,i)\notin D_s)} \tag{7}<br>$$</p>
+<p>其中$\delta$是一个指示函数.<br>$$<br>b:=\begin{cases}<br>1 \; if \, b \, is \, true \cr<br>0 \; else \cr<br>\end{cases} \tag{8}<br>$$<br>由于对称性,我们可以将上面的式子化简为下面的式子:</p>
+<p>$$<br>\prod_{u \in U} p(&gt;_u|\Theta) = \prod _{(u,i,j) \in D_s}p(i&gt;_uj|\Theta) \tag{9}<br>$$<br>到目前为止,我们还没有得到$p(&gt;_u|\Theta)$.对此,我们定义$p(&gt;_u|\Theta):=\sigma(\hat{x}_{uij}(\Theta))$,其中$\sigma$是logisitc函数.<br><strong>我们假定p(\Theta)函数服从正态分布</strong>,也就是:<br>$$<br>p(\Theta) \backsim N(0,\textstyle \sum_{\Theta}) \tag{10}<br>$$<br>其中,$\textstyle \sum_{\Theta} = \lambda_{\Theta}I$,结合$(6)(9)(10)$,我们可以得到:</p>
+<p>$$<br>\begin{array}<br>\\ BPR-OPT: &amp;= ln\,p(\Theta|&gt;_u)<br>\\ &amp;=1n\,p(&gt;_u|\Theta)p(\Theta)<br>\\ &amp;= \sum_{(u,i,j)\in D_s} ln\sigma (\hat{x}_{uij}) + ln\,p(\Theta)<br>\\ &amp;= \sum_{(u,i,j)\in D_s} ln\sigma (\hat{x}_{uij})  - \lambda_{\Theta}\|\Theta\|<br>\end{array} \tag{11}<br>$$</p>
+<p>$\hat{x}_{uij}$我们可以定义成这样的函数,$\hat{x}_{uij}=x_{ui}-x_{uj}$.令$X_{U\times I} = P_{U\times k}Q_{I \times k}^T$,那么$x_{ui}=&lt;p_u,q_i&gt; = \sum_{f=0} ^{k} p_{uf}*q_{if}$</p>
+<p>对于上面的$P,Q$,我们可以根据$(11)$利用随机梯队下降方法进行求解.<br>$$<br>\begin{array}<br>\\ \frac{\partial{(BPR-OPT) }}{\partial \Theta} &amp;= \sum_{(u,i,j)\in D_s} \frac{\partial}{\partial \Theta} ln\sigma (\hat{x}_{uij}) - \lambda _{\Theta} \frac{\partial}{\partial \Theta} \|\Theta\|^2<br>\\ &amp; \propto  \sum_{(u,i,j)\in D_s} \frac{-e^{-\hat{x}_{uij}}}{1+e^{-\hat{x}_{uij}}}  \frac{\partial}{\partial \Theta} \hat{x}_{uij} - \lambda _{\Theta} \Theta<br>\end {array} \tag{12}<br>$$</p>
+<p>根据$\hat{x}_{uij}$的定义,我们有:<br>$$<br>\frac {\partial \hat{x}_{uij}}{\partial \theta} =\frac {\partial (p_u^Tq_i - p_u^Tq_j)}{\partial \theta} :=\begin{cases}<br>q_i - q_j &amp;  \theta = p_u \cr<br>p_u &amp; \theta = p_i \cr<br>-p_u &amp; \theta = p_j \cr<br>0 &amp; else<br>\end{cases} \tag{13}<br>$$<br>这样我们就可以用梯度法求上面的的$P,Q$了,$X$也就被分解成了$X=PQ^T$.对于任意的$u,j$我们可以得到$x_{ui}$,然后按照这个值进行排序.</p>
+<h3 id="BRF-代码"><a href="#BRF-代码" class="headerlink" title="BRF 代码"></a>BRF 代码</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_data</span><span class="params">(data_path)</span>:</span></span><br><span class="line">    user_ratings = defaultdict(set)</span><br><span class="line">    max_u_id = <span class="number">-1</span></span><br><span class="line">    max_i_id = <span class="number">-1</span></span><br><span class="line">    <span class="keyword">with</span> open(data_path, <span class="string">'r'</span>) <span class="keyword">as</span> fin:</span><br><span class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> fin.readlines():</span><br><span class="line">            u, i, _, _, = line.split(<span class="string">"\t"</span>)</span><br><span class="line">            u = int(u)</span><br><span class="line">            i = int(i)</span><br><span class="line">            user_ratings[u].add(i)</span><br><span class="line">            max_u_id = max(u, max_u_id)</span><br><span class="line">            max_i_id = max(i, max_i_id)</span><br><span class="line">    print(<span class="string">'max_u_id:&#123;&#125;,max_i_id:&#123;&#125;'</span>.format(max_u_id, max_i_id))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> max_u_id, max_i_id, user_ratings</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_test</span><span class="params">(user_ratings)</span>:</span></span><br><span class="line">    user_test = dict()</span><br><span class="line">    <span class="keyword">for</span> u, i_list <span class="keyword">in</span> user_ratings.items():</span><br><span class="line">        user_test[u] = random.sample(i_list, <span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">return</span> user_test</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_train_batch</span><span class="params">(user_ratings, user_ratings_test, item_count, batch_size=<span class="number">521</span>)</span>:</span></span><br><span class="line">    t = []</span><br><span class="line">    <span class="keyword">for</span> b <span class="keyword">in</span> range(batch_size):</span><br><span class="line">        u = random.sample(user_ratings.keys(), <span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line">        i = random.sample(user_ratings[u], <span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">while</span> i == user_ratings_test[u]:</span><br><span class="line">            i = random.sample(user_ratings[u], <span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line">        j = random.randint(<span class="number">1</span>, item_count)</span><br><span class="line">        <span class="comment">#  we need j not in user_ratings[u], because all value in user_ratings[u] has positive actions</span></span><br><span class="line">        <span class="keyword">while</span> j <span class="keyword">in</span> user_ratings[u]:</span><br><span class="line">            j = random.randint(<span class="number">1</span>, item_count)</span><br><span class="line">        t.append([u, i, j])</span><br><span class="line">    <span class="keyword">return</span> np.asarray(t)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_test_batch</span><span class="params">(user_ratings, user_ratings_test, item_count)</span>:</span></span><br><span class="line">    <span class="keyword">for</span> u <span class="keyword">in</span> user_ratings_test.keys():</span><br><span class="line">        t = []</span><br><span class="line">        i = user_ratings_test[u]</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, item_count + <span class="number">1</span>):</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> (j <span class="keyword">in</span> user_ratings[u]):</span><br><span class="line">                t.append([u, i, j])</span><br><span class="line">        <span class="keyword">yield</span> np.asarray(t)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bpr_mf</span><span class="params">(user_count, item_count, hidden_dim)</span>:</span></span><br><span class="line">    u = tf.placeholder(tf.int32, [<span class="literal">None</span>])</span><br><span class="line">    i = tf.placeholder(tf.int32, [<span class="literal">None</span>])</span><br><span class="line">    j = tf.placeholder(tf.int32, [<span class="literal">None</span>])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> tf.device(<span class="string">'/cpu:0'</span>):</span><br><span class="line">        user_emb_w = tf.get_variable(<span class="string">'user_emb_w'</span>, [user_count + <span class="number">2</span>, hidden_dim],</span><br><span class="line">                                     initializer=tf.random_normal_initializer(<span class="number">0</span>, <span class="number">0.1</span>))</span><br><span class="line">        item_emb_w = tf.get_variable(<span class="string">'item_emb_w'</span>, [item_count + <span class="number">2</span>, hidden_dim],</span><br><span class="line">                                     initializer=tf.random_normal_initializer(<span class="number">0</span>, <span class="number">0.1</span>))</span><br><span class="line">        u_emb = tf.nn.embedding_lookup(user_emb_w, u)</span><br><span class="line">        i_emb = tf.nn.embedding_lookup(item_emb_w, i)</span><br><span class="line">        j_emb = tf.nn.embedding_lookup(item_emb_w, j)</span><br><span class="line"></span><br><span class="line">    x = tf.reduce_sum(tf.multiply(u_emb, i_emb - j_emb), <span class="number">1</span>, keepdims=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    mf_auc = tf.reduce_mean(tf.to_float(x &gt; <span class="number">0</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># l2_norm = tf.add_n([</span></span><br><span class="line">    <span class="comment">#     tf.reduce_sum(tf.multiply(u_emb, u_emb)),</span></span><br><span class="line">    <span class="comment">#     tf.reduce_sum(tf.multiply(i_emb, i_emb)),</span></span><br><span class="line">    <span class="comment">#     tf.reduce_sum(tf.multiply(j_emb, j_emb)),</span></span><br><span class="line">    <span class="comment"># ])</span></span><br><span class="line"></span><br><span class="line">    l2_norm = tf.add_n([</span><br><span class="line">        tf.reduce_mean(tf.multiply(u_emb, u_emb)),</span><br><span class="line">        tf.reduce_mean(tf.multiply(i_emb, i_emb)),</span><br><span class="line">        tf.reduce_mean(tf.multiply(j_emb, j_emb)),</span><br><span class="line">    ])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    regulation_rate = <span class="number">1e-4</span></span><br><span class="line">    <span class="comment"># TODO tf.reduce_mean need to be tf.reduce_sum ?</span></span><br><span class="line">    <span class="comment"># as in bpr,we want maximum ln p(&gt;|theta), so here we minimize -ln p(&gt;|theta)</span></span><br><span class="line">    bploss = regulation_rate * l2_norm - tf.reduce_mean(tf.log(tf.sigmoid(x)))</span><br><span class="line"></span><br><span class="line">    train_op = tf.train.GradientDescentOptimizer(<span class="number">1e-2</span>).minimize(bploss)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> u, i, j, mf_auc, bploss, train_op</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">with</span> tf.Graph().as_default(), tf.Session() <span class="keyword">as</span> ss:</span><br><span class="line">        data_path = <span class="string">"../data/ml-100k/u.data"</span></span><br><span class="line">        user_count, item_count, user_ratings = load_data(data_path=data_path)</span><br><span class="line">        print(<span class="string">'user_count:&#123;&#125;, item_count:&#123;&#125;'</span>.format(user_count, item_count))</span><br><span class="line">        user_ratings_test = generate_test(user_ratings)</span><br><span class="line">        u, i, j, mf_auc, bploss, train_op = bpr_mf(user_count=user_count,</span><br><span class="line">                                                   item_count=item_count,</span><br><span class="line">                                                   hidden_dim=<span class="number">20</span>)</span><br><span class="line">        ss.run(tf.global_variables_initializer())</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> epoch <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">4</span>):</span><br><span class="line">            _batch_bploss = <span class="number">0</span></span><br><span class="line">            <span class="keyword">for</span> k <span class="keyword">in</span> range(<span class="number">5000</span>):</span><br><span class="line">                uij = generate_train_batch(user_ratings=user_ratings,</span><br><span class="line">                                           user_ratings_test=user_ratings_test,</span><br><span class="line">                                           item_count=item_count,</span><br><span class="line">                                           batch_size=<span class="number">512</span></span><br><span class="line">                                           )</span><br><span class="line">                _bprloss, _train_op = ss.run([bploss, train_op],</span><br><span class="line">                                             feed_dict=&#123;</span><br><span class="line">                                                 u: uij[:, <span class="number">0</span>],</span><br><span class="line">                                                 i: uij[:, <span class="number">1</span>],</span><br><span class="line">                                                 j: uij[:, <span class="number">2</span>],</span><br><span class="line">                                             &#125;)</span><br><span class="line">                _batch_bploss += _bprloss</span><br><span class="line"></span><br><span class="line">            print(<span class="string">'epoch: &#123;&#125;'</span>.format(epoch))</span><br><span class="line">            print(<span class="string">'bpr_loss: &#123;&#125;'</span>.format(_batch_bploss))</span><br><span class="line"></span><br><span class="line">            _user_count = <span class="number">0</span></span><br><span class="line">            _auc_sum = <span class="number">0</span></span><br><span class="line">            _test_bploss = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> t_uij <span class="keyword">in</span> generate_test_batch(user_ratings=user_ratings,</span><br><span class="line">                                             user_ratings_test=user_ratings_test,</span><br><span class="line">                                             item_count=item_count):</span><br><span class="line">                _auc, _bprloss = ss.run([mf_auc, bploss],</span><br><span class="line">                                        feed_dict=&#123;</span><br><span class="line">                                            u: t_uij[:, <span class="number">0</span>],</span><br><span class="line">                                            i: t_uij[:, <span class="number">1</span>],</span><br><span class="line">                                            j: t_uij[:, <span class="number">2</span>],</span><br><span class="line">                                        &#125;)</span><br><span class="line"></span><br><span class="line">                _auc_sum += _auc</span><br><span class="line">                _user_count += <span class="number">1</span></span><br><span class="line">                _test_bploss += _bprloss</span><br><span class="line"></span><br><span class="line">            print(<span class="string">'test_loss : &#123;&#125;, test_auc: &#123;&#125;'</span>.format(_test_bploss / _user_count, _auc_sum / _user_count))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">run()</span><br></pre></td></tr></table></figure></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/machine-learning/" rel="tag">#machine learning</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/15/线段树在IP归属问题上的应用/" rel="prev">
+                <i class="fa fa-chevron-left"></i> 线段树在IP归属问题上的应用
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/18/Adults-in-the-Room/" rel="next">
+                Adults in the Room <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#LR评测指标"><span class="nav-number">1.</span> <span class="nav-text">LR评测指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BPR模型"><span class="nav-number">2.</span> <span class="nav-text">BPR模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BRF-代码"><span class="nav-number">3.</span> <span class="nav-text">BRF 代码</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

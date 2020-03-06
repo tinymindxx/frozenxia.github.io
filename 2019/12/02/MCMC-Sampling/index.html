@@ -1,0 +1,844 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="algorithm,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.">
+<meta name="keywords" content="algorithm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCMC Sampling(一)">
+<meta property="og:url" content="http://yoursite.com/2019/12/02/MCMC-Sampling/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/69949117-d59f8600-152b-11ea-87f2-bddd5a3f6fd8.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/69957412-95490380-153d-11ea-9d58-c1317812aeb5.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/69957992-cece3e80-153e-11ea-80c9-1fde02f6071d.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/69958067-f45b4800-153e-11ea-8bff-e461630abf62.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/69943238-2a3d0400-1520-11ea-96a4-22b18bb5997d.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/70027178-86fdf480-15dc-11ea-8dda-6d5340e419c0.png">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.448Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MCMC Sampling(一)">
+<meta name="twitter:description" content="MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/5286725/69949117-d59f8600-152b-11ea-87f2-bddd5a3f6fd8.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> MCMC Sampling(一) | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                MCMC Sampling(一)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-12-02T15:35:51+08:00" content="2019-12-02">
+              2019-12-02 15:35
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/12/02/MCMC-Sampling/" class="leancloud_visitors" data-flag-title="MCMC Sampling(一)">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.<br><a id="more"></a></p>
+<h3 id="Monte-Carlo-Sampling"><a href="#Monte-Carlo-Sampling" class="headerlink" title="Monte-Carlo Sampling"></a>Monte-Carlo Sampling</h3><p>Monte-Carlo作为一种随机模拟方法,与曼哈顿计划密切相关,为了保密所以起名Monte-Carlo,也有赌场随机的意思.最早的Monte-Carlo方法是为了求解一些不太好求解的求和或者积分问题.比如积分:<br>$$<br>\theta=\int_a ^b f(x)dx<br>$$</p>
+<p>如果我们很难求解出$f(x)$的原函数,那么这个积分比较难求解.我们可以通过Mote-Carlo方法进行模拟求解.假设函数的图像如下所示:<br><img src="https://user-images.githubusercontent.com/5286725/69949117-d59f8600-152b-11ea-87f2-bddd5a3f6fd8.png" alt="image"></p>
+<p>那么一个简单的思路是在$[a,b]$之间随机采样一个点$x_0$,然后用$f(x_0)$代表区间$[a,b]$上所有$f(x)$的值,那么上面的定积分的近似求解为:$(b-a)f(x_0)$.</p>
+<p>当然,直接采用$x_0$来代表所有$f(x)$的值,这个假设太粗糙了.那么我们可以在区间$[a,b]$采样n个点$x_1,x_2,…,x_n$,然后用他们的均值来代表区间$[a,b]$上所有$f(x)$值.这样上面的定积分的近似求解为:$\frac{b-a}{n}\sum_{i=1}^n f(x_i)$.</p>
+<p>虽然上面的求解方式在一定程度上能够求出近似解,但是它隐含了一个条件,就是$x$在$[a,b]$之间的分布是均匀的,而且大部分的情况下,$x$在$[a,b]$之间的分布是不均匀的.如果我们采用上面的方法,则模拟求出的结果很可能与真实值相差甚远.要解决这个问题,如果我们可以得到$x$在$[a,b]$上的概率分布函数$p(x)$,那么定积分求和就可以变成:<br>$$<br>\theta=\int_a ^b f(x)dx=\int_a ^b \frac {f(x)}{p(x)} p(x)dx \approx \frac{1}{n} \sum_{i=0}^{n-1}\frac{f(x_i)}{p(x_i)} \tag{7}<br>$$<br>上面式子最右边的等式就是Monte-carlo的一般形式,对于离散情况同样适合.从上面的式子可以看出,当我们假设$x$在$[a,b]$之间均匀分布的时候,我们有$p(x_i)=\frac{1}{b-a}$.</p>
+<h4 id="Accept-Refuse-Sampling"><a href="#Accept-Refuse-Sampling" class="headerlink" title="Accept-Refuse Sampling"></a>Accept-Refuse Sampling</h4><p>前面提到的Monte-Carlo方法的关键是要得到$x$的概率,如果求出了$x$的概率$p(x)$,我们就可以基于这个概率分布去采样$n$个$x$的样本集,然后带入$(7)$中就可以了.通常情况下,F分布,Beta分布,Gamma分布等都由现成的采样函数,但是更多的情况是$x$的概率分布并不是常见的分布,也就意味着我们无法通过常见的概率分布得到样本分布集.<br>对于概率分布不常见的分布,一个可行的方法是采接受-拒绝采样得到该分布的样本.既然$p(x)$太复杂,在程序中无法直接采样.那么我们可以设定一个可以采样的分布$q(x)$,比如高斯分布.然后按照一定的方法拒绝某些样本,这样就可以近似得到$p(x)$的分布的目的,其中$q(x)$叫做Proposal Distribution.<br><img src="https://user-images.githubusercontent.com/5286725/69957412-95490380-153d-11ea-9d58-c1317812aeb5.png" alt="image"></p>
+<p>具体采样的流程如下:</p>
+<ol>
+<li>设定一个方便采样的概率分布$q(x)$以及常量$k$,使得$p(x)&lt;kq(x) $,如上图所示;</li>
+<li>采样$q(x)$得到一个$z_0$;</li>
+<li>从均匀分布$(0,kq(z_0))$中采样得到一个值$u$.如果$u$落在灰色区间中,拒绝本次抽样,否则接受样本$z_0$</li>
+<li>重复1-3,得到n个接受的样本$z_0,…,z_i,…,z_n$,最后按照Monte-carlo方法求解;</li>
+</ol>
+<p>Accept-Reject采样法存在以下缺点:</p>
+<ul>
+<li>采样效率低，并且对于复杂的分布，很难找到对应的$k$以及$q(x)$</li>
+<li>无法采样多维数据点</li>
+</ul>
+<h4 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h4><p>目标函数:<br><img src="https://user-images.githubusercontent.com/5286725/69957992-cece3e80-153e-11ea-80c9-1fde02f6071d.png" alt="image"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> seaborn <span class="keyword">as</span> sns</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">AcceptReject</span><span class="params">(split_val)</span>:</span></span><br><span class="line">    <span class="keyword">global</span> c</span><br><span class="line">    <span class="keyword">global</span> power</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        x = random.uniform(<span class="number">0</span>,<span class="number">1</span>)</span><br><span class="line">        y = random.uniform(<span class="number">0</span>,<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> y*c &lt;= math.pow(x-split_val,power):</span><br><span class="line">            <span class="keyword">return</span> x</span><br><span class="line"></span><br><span class="line">power = <span class="number">4</span></span><br><span class="line">t = <span class="number">0.4</span></span><br><span class="line">sum_ = (math.pow(<span class="number">1</span>-t,power+<span class="number">1</span>)-math.pow(-t,power+<span class="number">1</span>))/(power+<span class="number">1</span>)</span><br><span class="line">x = np.linspace(<span class="number">0</span>,<span class="number">1</span>,<span class="number">100</span>)</span><br><span class="line">c = <span class="number">0.6</span>**<span class="number">4</span>/sum_</span><br><span class="line"><span class="comment"># print(c)</span></span><br><span class="line">cc = [c <span class="keyword">for</span> xi <span class="keyword">in</span> x]</span><br><span class="line"></span><br><span class="line">plt.plot(x,cc,<span class="string">'--'</span>,label=<span class="string">'c*f(x)'</span>)</span><br><span class="line">y = [math.pow(xi-t,power)/sum_ <span class="keyword">for</span> xi <span class="keyword">in</span> x]</span><br><span class="line">plt.plot(x,y,label= <span class="string">'f(x)'</span>)</span><br><span class="line">samples = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10000</span>):</span><br><span class="line">    samples.append(AcceptReject(t))</span><br><span class="line"></span><br><span class="line">plt.hist(samples,bins=<span class="number">50</span>,normed=<span class="literal">True</span>,label=<span class="string">'sampling'</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>采样之后得到的图像:<br><img src="https://user-images.githubusercontent.com/5286725/69958067-f45b4800-153e-11ea-8bff-e461630abf62.png" alt="image"></p>
+<h3 id="Markov-Chains"><a href="#Markov-Chains" class="headerlink" title="Markov Chains"></a>Markov Chains</h3><p>Markov Chain是以Andrey Markov命名的,用于描述状态空间中从一个状态转换到另一个状态的随机过程.该过程需要具备无记忆的性质:下一个状态的概率分布只能由当前状态决定,在时间序列中它前面的时间均与之无关.如果用精确的数学定义来描述,假设序列的状态是$…,X_{t-2},X_{t-1},X_{t},X_{t+1},…$,那么在时刻$t+1$的状态的概率仅依赖时刻$t$,即:<br>$$<br>    P(X_{t+1}|…X_{t-2}X_{t-1}X_{t}) = P(X_{t+1}|X_{t})\tag{1}<br>$$</p>
+<p>既然时刻$t$的状态只依赖于它的前一个状态,那么我们只需要计算出系统中任意两个状态之间的转换概率,这些状态组成的马尔科夫链的模型就定了.</p>
+<h4 id="Markov-Chains状态转移矩阵"><a href="#Markov-Chains状态转移矩阵" class="headerlink" title="Markov Chains状态转移矩阵"></a>Markov Chains状态转移矩阵</h4><p>以下图中的Markov模型为例,模型中包含了三种状态:牛市,熊市以及横盘.每一个状态都会有一定的几率转化到下一个状态.比如图中的牛市会以0.025的概率转移到横盘状态.<br><img src="https://user-images.githubusercontent.com/5286725/69943238-2a3d0400-1520-11ea-96a4-22b18bb5997d.png" alt="image"></p>
+<p>图中的状态转移可以以一个矩阵的形式表示,如果我们定义矩阵$P$的某一位置$P(i,j)$为$P(j|i)$,也就是从状态i转化到j的概率,并定义三种状体$(牛市,熊市,横盘)$为$(0,1,2)$,这样我们就可以得到Markov Chain的转移矩阵.</p>
+<p>$$<br>P = \left(<br> \begin{matrix}<br>   0.9 &amp; 0.075 &amp; 0.025 \\<br>   0.15 &amp; 0.8 &amp; 0.05 \\<br>   0.25 &amp; 0.25 &amp; 0.5<br>  \end{matrix}<br>  \right) \tag{2}<br>$$</p>
+<h4 id="Markov-Chains状态转移矩阵的性质"><a href="#Markov-Chains状态转移矩阵的性质" class="headerlink" title="Markov Chains状态转移矩阵的性质"></a>Markov Chains状态转移矩阵的性质</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">matrix = np.matrix([[<span class="number">0.9</span>,<span class="number">0.075</span>,<span class="number">0.025</span>],[<span class="number">0.15</span>,<span class="number">0.8</span>,<span class="number">0.05</span>],[<span class="number">0.25</span>,<span class="number">0.25</span>,<span class="number">0.5</span>]], dtype=float)</span><br><span class="line">vector1 = np.matrix([[<span class="number">0.3</span>,<span class="number">0.4</span>,<span class="number">0.3</span>]], dtype=float)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">100</span>):</span><br><span class="line">    vector1 = vector1*matrix</span><br><span class="line">    <span class="keyword">print</span> (<span class="string">"Current round:"</span> , i+<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">print</span> (vector1)</span><br></pre></td></tr></table></figure>
+<p>运行上面一段代码值或,我们会发现随着迭代的次数增加,输出的值始终是$[[ 0.625   0.3125  0.0625]]$.即使是更换$vector1$的值,我们发现最终系统输出值依然会稳定在$[[ 0.625   0.3125  0.0625]]$.上面简单的例子说明了随着迭代次数增多,MarkovChain会到达一个稳定状态.如果我们计算$matrix^{n}$值,我们同样会发现最后$matrix$会稳定在$[[ 0.625   0.3125  0.0625],[ 0.625   0.3125  0.0625],[ 0.625   0.3125  0.0625]]$.这就是Markov Chain的收敛性质了.<br>用数学语言表述上面的性质: 如果一个非周期的Markov Chain的状态转移矩阵为$P$,并且任意两个状态是连通的,那么$     \lim_{n\to\infty}P_{ij}^n$与$i$无关.也就是:<br>$$<br>\lim_{n\to\infty}P_{ij}^n = \pi (j) \tag{3}<br>$$</p>
+<p>$$<br>\lim_{n\to\infty}P^n = \left(<br> \begin{matrix}<br>   \pi (1) &amp; \pi (2) &amp; … &amp; \pi (n) \\<br>   \pi (1) &amp; \pi (2) &amp; … &amp; \pi (n) \\<br>   \pi (1) &amp; \pi (2) &amp; … &amp; \pi (n) \\<br>   … &amp;… &amp; … &amp; …<br>  \end{matrix}<br>  \right)  \tag{4}<br>$$</p>
+<p>$$<br>\pi (j) = \sum_{i=0}^{\infty}\pi(i)P_{ij} \tag{5}<br>$$<br>$\pi$是方程$\pi P=\pi$的唯一非负解,并且:<br>$$<br>\pi = [\pi (1) ,\pi (2) , … ,\pi (n)]\;\;\sum_{i=0}^{\infty}\pi(i)=1 \tag{6}<br>$$ </p>
+<p>上面的性质需要解释的有:</p>
+<ol>
+<li>非周期性的MarkovChain:这个主要是指MarkovChain的状态转化不是循环的,如果是循环的那么MarkovChain永远不会收敛,通常我们遇到的MarkovChain都是非周期性的.用数学的表述则是:对于某一状态$i$,$d$为集合$\{n|n\gt 1,P_{ii}^{n}&gt;0\}$的最大公约数,如果$d=1$,那么该状态为非周期的;</li>
+<li>任何两个状态之间是连通的,这里指的是从一个状态出发,可以经过有限步到达任意一个状态,不会出现条件概率一直为0导致不可达的情况;</li>
+<li>MarkovChain的状态可以使有限状态,也可以是无限状态.因此可以用于模拟连续概率分布和离散概率分布;</li>
+<li>$\pi$通常称为MarkovChain的平稳分布;</li>
+</ol>
+<h3 id="MCMC-Sampling"><a href="#MCMC-Sampling" class="headerlink" title="MCMC Sampling"></a>MCMC Sampling</h3><p>根据MarkovChain的平稳性特征,如果我们能够得到某个平稳分布的MarkovChain状态转移矩阵,我们就很容易求出这个平稳分布的采样集.假设我们任意初始概率分布是$\pi_0(x)$,经过$i$轮状态转移之后得到$\pi_i(x)$.系统经过$n$轮状态转移之后达到平稳状态$\pi(x)$,也就是:$\pi_n(x)=\pi_{n+1}(x)=\pi_{n+i}(x) =\pi(x)$<br>那么我们可以根据MarkovChain的特性进行采样了,采样的步骤如下:</p>
+<ol>
+<li>基于任意简单分布采样得到初始状态$x_0$;</li>
+<li>基于条件概率$P(x_{i+1}|x_{i})$采样出$x_1,x_2,…,x_n$,直到我们认为系统已经符合稳定状态了;</li>
+<li>继续采样$x_{n+1},x_{n+2},…$,作为我们平稳分布的样本集合;</li>
+<li>利用$(7)$进行Monte-Carlo模拟求和;</li>
+</ol>
+<p><strong>这里有一个重要问题,给定一个任意的平稳分布$\pi$,如何得到其对应的MarkovChain的转移矩阵$P$呢?</strong></p>
+<h3 id="M-H-Sampling"><a href="#M-H-Sampling" class="headerlink" title="M-H Sampling"></a>M-H Sampling</h3><h4 id="重新审视MarkovChain平稳条件"><a href="#重新审视MarkovChain平稳条件" class="headerlink" title="重新审视MarkovChain平稳条件"></a>重新审视MarkovChain平稳条件</h4><p>在给$\pi$找到对应的MarkovChain转移矩阵$P$之前,我们先重新审视MarkovChain的细致平稳条件.对于非周期MarkovChain的状态转移矩阵$P$和概率分布$\pi(x)$,对所有的$i,j$都满足:$\pi(i)P(i,j)=\pi(j)P(j,i)$,也就是之前提到的$\pi P = \pi$.<br>也就是对于任意的分布$\pi(x)$,我们只要找到矩阵$Q$,满足上面的条件就可以.但是通常我们很难找到这样的$Q$,即$\pi(i)Q(i,j)\ne\pi(j)Q(j,i)$.</p>
+<h4 id="MCMC-Sampling-1"><a href="#MCMC-Sampling-1" class="headerlink" title="MCMC Sampling"></a>MCMC Sampling</h4><p>既然通常情况下$\pi(i)Q(i,j)\ne\pi(j)Q(j,i)$,那么我们可以对上面的式子做一个修改,使得其满足细致平稳条件.通过引入一个$\alpha(i,j)$,使得上式成立:<br>$$<br>\pi (i) Q(i,j) \alpha (i,j) = \pi (j) Q(j,i) \alpha (j,i) \tag {8}<br>$$<br>那么什么样子的$\alpha(i,j)$能够使得等式成立呢?很简单,只要满足下面的式子就可以了:</p>
+<p>$$<br>\alpha (i,j) = \pi (j) Q(j,i) \\<br>\alpha (j,i) = \pi (i) Q(i,j)  \tag{9}<br>$$<br>这样我们就能得到我们分布$\pi(x)$对应的MarkovChain的状态转移矩阵P,满足:</p>
+<p>$$<br>P(i,j) = Q(i,j) \alpha(i,j) \tag{10}<br>$$<br>这样我们就可以得到V2版本的MCMC Sampling了:</p>
+<ol>
+<li>输入选定的MarkovChain转移矩阵$Q$,平稳分布$\pi(x)$,设定状态转移次数$n_1$,需要的样本数$n_2$;</li>
+<li>从任意简单样本采样得到$x_0$</li>
+<li>$for\; t = 0\; to\; n_1 + n_2 -1:$<br> a) 从概率分布$Q(x|x_t)$中采样得到$x_*$<br> b) 从均匀分布中采样$u \sim uniform[0,1]$<br> c) 如果$u &lt; a(x_t,x_{*}) = \pi(x_*)Q(x_*,x_t)$,则接受转移$x_t \to x_*$,即$x_{t+1} = x_*$<br> d) 否则不接受转移,重复a);<br>样本集$(x_{n_1},x_{n_1+1},…,x_{n_1+n_2-1})$就是我们需要的平稳分布对应的样本集合</li>
+</ol>
+<p><strong>这里有个问题需要解释清楚,为什么在$3.c)$中,需要满足$u &lt; a(x_t,x_{*})$.我们拆开问题来看,对平稳分布$\pi(x)$,其对应的MarkovChain的转移矩阵$P(i,j)= Q(i,j) \alpha(i,j)$,$Q(i,j)$是任意选定的.那么当采样得到$x_0$时, $P(x|x_0)=Q(x|x_0)*\alpha(x|x_0)$.根据转移矩阵$Q(x|x_0)$采样得到$x_*$,此时$x_*$只能算作是proposal,它只有$\alpha(x_*|x_0)$的概率成为合法的转移状态,这也是为什么需要生成$u \sim uniform[0,1]$.因为$\alpha(x_*|x_0)$是一个概率,所以采用的是均匀分布来确定是否能够称为合法的状态.</strong></p>
+<h4 id="M-H-改进"><a href="#M-H-改进" class="headerlink" title="M-H 改进"></a>M-H 改进</h4><p>M-H Sampling通常又称作Metropolis-Hastings采样.上面提出的MCMC采样法有一个缺陷,<strong>通常$a(x_t,x_{*})$是一个比较小的值,导致采样效率非常低</strong>.要理解M-H对这个问题的改进,我们需要在一次回顾细致平稳条件:<br>$$<br>\pi (i) Q(i,j) \alpha (i,j) = \pi (j) Q(j,i) \alpha (j,i) \tag {11}<br>$$<br>之所以采样效率低的原因是因为$\alpha (i,j)$太小了.例如当$\alpha (i,j)$为0.1,$\alpha (j,i)$为0.2的时候,$(11)$就变成: $\pi (i) Q(i,j) *0.1 = \pi (j) Q(j,i) *0.2$.对于等式两边,同时扩大$n$倍并不会影响等式的成立,因此我们可以让等式右边的$\alpha(j,i)=1$,这样就得到了我们需要的$\alpha(i,j)$:<br>$$<br>\alpha(i,j) = \frac {\pi (j) Q(j,i)} {\pi (i) Q(i,j)}<br>$$<br>因为$\alpha(i,j)$是一个概率,因此最大值只能为1,所以$\alpha(i,j) = min \left( \frac {\pi (j) Q(j,i)} {\pi (i) Q(i,j)},1 \right) $<br>这样,M-H采样的过程就变成了:</p>
+<ol>
+<li>输入选定的MarkovChain转移矩阵$Q$,平稳分布$\pi(x)$,设定状态转移次数$n_1$,需要的样本数$n_2$;</li>
+<li>从任意简单样本采样得到$x_0$</li>
+<li>$for\; t = 0\; to\; n_1 + n_2 -1:$<br> a) 从概率分布$Q(x|x_t)$中采样得到$x_*$<br> b) 从均匀分布中采样$u \sim uniform[0,1]$<br> c) 如果$u &lt; a(x_t,x_{*}) = min \left( \frac {\pi (j) Q(j,i)} {\pi (i) Q(i,j)},1 \right) $,则接受转移$x_t \to x_*$,即$x_{t+1} = x_*$<br> d) 否则不接受转移,重复a);<br>样本集$(x_{n_1},x_{n_1+1},…,x_{n_1+n_2-1})$就是我们需要的平稳分布对应的样本集合</li>
+</ol>
+<p><strong>如果我们选择Q是对称的,也就是说$Q(i,j)=Q(j,i)$,那么$\alpha(i,j) = min \left( \frac {\pi (j) Q(j,i)} {\pi (i) Q(i,j)},1 \right) = min \left( \frac {\pi (j)} {\pi (i) },1 \right)  $</strong></p>
+<h4 id="M-H-sampling"><a href="#M-H-sampling" class="headerlink" title="M-H sampling"></a>M-H sampling</h4><p>M-H采样例子:</p>
+<ul>
+<li>$\pi(x)\sim N(3,2)$的正态分布</li>
+<li>$Q(i,j)$为$N(i,1)$在$j$处的$pdf$,因此$Q(i,j)=Q(j,i)$</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">from</span> scipy.stats <span class="keyword">import</span> norm</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">norm_dist_prob</span><span class="params">(theta)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> norm.pdf(theta,loc=<span class="number">3</span>,scale=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">T = <span class="number">100000</span></span><br><span class="line">pi = [<span class="number">0</span> <span class="keyword">for</span> i <span class="keyword">in</span> range(T)]</span><br><span class="line">sigma = <span class="number">1</span></span><br><span class="line">t = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> t &lt; T<span class="number">-1</span>:</span><br><span class="line">    t += <span class="number">1</span></span><br><span class="line">    pi_start = norm.rvs(loc=pi[t<span class="number">-1</span>],scale=sigma,size=<span class="number">1</span>,random_state=<span class="literal">None</span>)</span><br><span class="line">    alpha = min(<span class="number">1</span>,(norm_dist_prob(pi_start))/norm_dist_prob(pi[t<span class="number">-1</span>]))</span><br><span class="line">    u  = random.uniform(<span class="number">0</span>,<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">if</span> u &lt; alpha:</span><br><span class="line">        pi[t] = pi_start</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        pi[t] = pi[t<span class="number">-1</span>]</span><br><span class="line">plt.scatter(pi, norm.pdf(pi, loc=<span class="number">3</span>, scale=<span class="number">2</span>))</span><br><span class="line">num_bins = <span class="number">100</span></span><br><span class="line">plt.hist(pi, num_bins, normed=<span class="number">1</span>, facecolor=<span class="string">'red'</span>, alpha=<span class="number">0.7</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>输出效果:<br><img src="https://user-images.githubusercontent.com/5286725/70027178-86fdf480-15dc-11ea-8dda-6d5340e419c0.png" alt="图片"></p>
+<p>Reference:</p>
+<p>[1] <a href="https://www.cnblogs.com/pinard/p/6638955.html" target="_blank" rel="noopener">https://www.cnblogs.com/pinard/p/6638955.html</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/algorithm/" rel="tag">#algorithm</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/04/mcmc-sampling-two/" rel="prev">
+                <i class="fa fa-chevron-left"></i> MCMC Sampling(二)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/15/线段树在IP归属问题上的应用/" rel="next">
+                线段树在IP归属问题上的应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Monte-Carlo-Sampling"><span class="nav-number">1.</span> <span class="nav-text">Monte-Carlo Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Accept-Refuse-Sampling"><span class="nav-number">1.1.</span> <span class="nav-text">Accept-Refuse Sampling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#示例代码"><span class="nav-number">1.2.</span> <span class="nav-text">示例代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Markov-Chains"><span class="nav-number">2.</span> <span class="nav-text">Markov Chains</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Markov-Chains状态转移矩阵"><span class="nav-number">2.1.</span> <span class="nav-text">Markov Chains状态转移矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Markov-Chains状态转移矩阵的性质"><span class="nav-number">2.2.</span> <span class="nav-text">Markov Chains状态转移矩阵的性质</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MCMC-Sampling"><span class="nav-number">3.</span> <span class="nav-text">MCMC Sampling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#M-H-Sampling"><span class="nav-number">4.</span> <span class="nav-text">M-H Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#重新审视MarkovChain平稳条件"><span class="nav-number">4.1.</span> <span class="nav-text">重新审视MarkovChain平稳条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MCMC-Sampling-1"><span class="nav-number">4.2.</span> <span class="nav-text">MCMC Sampling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#M-H-改进"><span class="nav-number">4.3.</span> <span class="nav-text">M-H 改进</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#M-H-sampling"><span class="nav-number">4.4.</span> <span class="nav-text">M-H sampling</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="machine learning,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="Null hypothesis又称为假设检验,是推论统计中用于检验统计假设的一种方法.而”统计假设”是可以通过观察一组随机变量的模型进行检验的科学假说.一旦能够估计未知参数,就能够根据结果对未知的真正参数作出适当的推论.统计上对参数的假设,就是对一个或者多个参数的论述,其中欲检验其正确性的为零假设(null hypothesis),零假设通常由研究者决定,反映了研究者对于未知参数的看法.相对于零假">
+<meta name="keywords" content="machine learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="null hypothesis">
+<meta property="og:url" content="http://yoursite.com/2019/09/16/null-hypothesis/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="Null hypothesis又称为假设检验,是推论统计中用于检验统计假设的一种方法.而”统计假设”是可以通过观察一组随机变量的模型进行检验的科学假说.一旦能够估计未知参数,就能够根据结果对未知的真正参数作出适当的推论.统计上对参数的假设,就是对一个或者多个参数的论述,其中欲检验其正确性的为零假设(null hypothesis),零假设通常由研究者决定,反映了研究者对于未知参数的看法.相对于零假">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.451Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="null hypothesis">
+<meta name="twitter:description" content="Null hypothesis又称为假设检验,是推论统计中用于检验统计假设的一种方法.而”统计假设”是可以通过观察一组随机变量的模型进行检验的科学假说.一旦能够估计未知参数,就能够根据结果对未知的真正参数作出适当的推论.统计上对参数的假设,就是对一个或者多个参数的论述,其中欲检验其正确性的为零假设(null hypothesis),零假设通常由研究者决定,反映了研究者对于未知参数的看法.相对于零假">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> null hypothesis | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                null hypothesis
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-09-16T20:54:48+08:00" content="2019-09-16">
+              2019-09-16 20:54
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/09/16/null-hypothesis/" class="leancloud_visitors" data-flag-title="null hypothesis">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>Null hypothesis又称为假设检验,是推论统计中用于检验统计假设的一种方法.而”统计假设”是可以通过观察一组随机变量的模型进行检验的科学假说.一旦能够估计未知参数,就能够根据结果对未知的真正参数作出适当的推论.统计上对参数的假设,就是对一个或者多个参数的论述,其中欲检验其正确性的为零假设(null hypothesis),零假设通常由研究者决定,反映了研究者对于未知参数的看法.相对于零假设的其他参数结论可以成为备择假设(alternative hypothesis),通常反应了执行检定的研究者对参数的另一种看法(通常也是以最希望知道的).<br><a id="more"></a><br>假设检验的种类主要包括t检验,Z检验,卡方检验以及F检验等等.在了解检验方法之前,首先需要了解以下第一型错误和第二型错误.</p>
+<h3 id="Type-I-error-amp-Type-II-error"><a href="#Type-I-error-amp-Type-II-error" class="headerlink" title="Type I error &amp; Type II error"></a>Type I error &amp; Type II error</h3><p>如果零假设事实上成立,但是统计结果拒绝零假设,这种错误成为Type I error.如果零假设事实上不成立,但是统计结果不拒绝零假设,称为Type II error.简单说,True-False 为Type I error, False-True为Type II error.</p>
+<h3 id="Z-test"><a href="#Z-test" class="headerlink" title="Z-test"></a>Z-test</h3><p>Z检验假设数据集服从正态分布,或者被正态分布近似.根据中心极限定理,很多分布在大量数据情况下可以近似成正态分布.但是当数据量&lt;30的时候,更合理的是采用Student’s t-test.正态分布有几个比较关键的数值,$1.96\delta$对应的是双尾$5\%$置信度.Z检验的null hypothesis是:X的均值是给定的$mu_0$</p>
+<h3 id="F-test"><a href="#F-test" class="headerlink" title="F-test"></a>F-test</h3><p>F-test的null hypothesis是数据服从F-distribution.源自正态分布的样本拥有相同的标准差是F-test的零假设的另一种表述.F-test对数据的非正态性比较敏感,如果数据不服从正态分布,会导致Type I error的增加.</p>
+<h3 id="Student’s-t-test"><a href="#Student’s-t-test" class="headerlink" title="Student’s t-test"></a>Student’s t-test</h3><p>Student’s t-test假设数据服从Student’s t分布,其零假设是数据的均值是否是某个具体的值,对于two-sample test,其零假设为两个sample的均值是否相同.Student’s t在样本在自由度比较大的时候,与$N(0,1)$的正态分布相似.</p>
+<h3 id="chi-square-test-amp-Pearson’s-chi-squared-test"><a href="#chi-square-test-amp-Pearson’s-chi-squared-test" class="headerlink" title="chi square-test &amp; Pearson’s chi-squared test"></a>chi square-test &amp; Pearson’s chi-squared test</h3><p>Chi square-test认为数据服从$\chi^2$分布.通常没有说明的情况下,卡方检测指代的是皮尔森卡方检测.假设实验中从总体中随机抽样得到$n$个观察值被划分为$k$类个互斥的分类,这样每一个分类都有一个对应的<strong>实际观察次数$x_i \; (i=1,2,3,…,k)$</strong>.研究人员会从实验中各个观察值落入第$i$个分类的概率$p_i$的分布提出零假设,从而获得了对应所有第$i$分类的<strong>理论期望次数$m_i=np_i$</strong>以及限制条件:<br>$$<br>\sum _{i=1} ^ {k} p_i=1 \; 以及\;  \sum _{i=1} ^ {k} m_i= \sum _{i=1} ^ {k} x_i = n<br>$$<br>皮尔森提出,在上述零假设成立以及$n$趋向$\infty$的时候,以下统计量的极限分布趋向$\chi^2$分布<br>$$<br>X^2 = \sum _{i=1} ^ {k} \frac {(x_i - m_i)^2}  {m_i} = \sum _{i=1} ^ {k} \frac {x_i ^2}  {m_i} -n<br>$$<br>当容量足够大的时候,$X^2$趋近服从自由度为$(k-1)$的$\chi^2$分布.</p>
+<p>在同一个个体身上有二元变量(X,Y),例如X(男/女)和Y(左撇子/有撇子),观察两个变量之间的相关性.null hypothesis是:两个变量呈统计独立性.在本例中,性别与惯用手是独立事件.<br>首先,每个观察值(每个抽出的人)会被重新编排到一个叫做”列连表”(contigency table)的二维表格里面.本例中的列联表是2*2的构造.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>男</th>
+<th>女</th>
+<th>总计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>右</td>
+<td>43</td>
+<td>44</td>
+<td>87</td>
+</tr>
+<tr>
+<td>左</td>
+<td>9</td>
+<td>4</td>
+<td>13</td>
+</tr>
+<tr>
+<td>总计</td>
+<td>52</td>
+<td>48</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<p>如果列联表有r行c列,那么在独立事件假设下,每个自端的”期望次数”为:<br>$$<br>E_{i,j} = \frac { ( \sum _{n_c=1} ^{c} O_{i,n_c} ) \dot  ( \sum _{n_r=1} ^{r} O_{n_r,j} )} {N}<br>$$<br>其中,N是样本大小,在本例中,N=100,各字段期望值如下:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>男</th>
+<th>女</th>
+<th>总计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>右</td>
+<td>43(45.24)</td>
+<td>44(41.76)</td>
+<td>87</td>
+</tr>
+<tr>
+<td>左</td>
+<td>9(6.76)</td>
+<td>4(6.24)</td>
+<td>13</td>
+</tr>
+<tr>
+<td>总计</td>
+<td>52</td>
+<td>48</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<p>$\chi^2$的统计值是:<br>$$<br>\chi^2 = \sum _{i=1} ^{r}  \sum _{j=1} ^{c} \frac {(O_{i,j} -E_{i,j})^2} {E_{i,j}}<br>$$</p>
+<p>本例中$\chi^2$的统计值为:<br>$$<br>\chi^2 = (43-45.24)^2/45.24 + (44-41.76)^2/41.76 + (9-6.76)^2/6.76 + (4-6.24)^2/6.24 = 1.777<br>$$</p>
+<p>自由度$df=(r-1)*(c-1)$.由于所有信息中,最后一个信息都可以通过剩下的信息推断出来,因此信息度都会少1.本例中$df=(2-1)*(2-1)=1$</p>
+<p>在$\chi^2 = 1.7777,df=1$的条件下,卡方右尾几率$p=0.1825$,无法拒绝null hypothesis.亦即:<strong>无法拒绝性别变量与惯用手变量之间相互独立的假设.</strong></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/machine-learning/" rel="tag">#machine learning</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/19/SVM/" rel="prev">
+                <i class="fa fa-chevron-left"></i> SVM
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/06/CUR-Decompostion/" rel="next">
+                CUR Decompostion <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Type-I-error-amp-Type-II-error"><span class="nav-number">1.</span> <span class="nav-text">Type I error &amp; Type II error</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Z-test"><span class="nav-number">2.</span> <span class="nav-text">Z-test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F-test"><span class="nav-number">3.</span> <span class="nav-text">F-test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Student’s-t-test"><span class="nav-number">4.</span> <span class="nav-text">Student’s t-test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chi-square-test-amp-Pearson’s-chi-squared-test"><span class="nav-number">5.</span> <span class="nav-text">chi square-test &amp; Pearson’s chi-squared test</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

@@ -1,0 +1,849 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="papers,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="论文提出了一个适用于Top-K推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的Top-K off-policy策略用于处理同一时间的多个item;展示了探索的意义.">
+<meta name="keywords" content="papers">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Top-K Off-Policy Correction for a REINFORCE Recommender System">
+<meta property="og:url" content="http://yoursite.com/2020/02/12/Top-K-Off-Policy-Correction-for-a-REINFORCE-Recommender-System/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="论文提出了一个适用于Top-K推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的Top-K off-policy策略用于处理同一时间的多个item;展示了探索的意义.">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/74462548-5fc07f00-4ecb-11ea-86f2-0bd2eac8da94.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/74585779-a7eeb700-501b-11ea-96a0-d41be713d3df.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/74591977-c672a380-5057-11ea-97de-d4f476fa9537.png">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.450Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Top-K Off-Policy Correction for a REINFORCE Recommender System">
+<meta name="twitter:description" content="论文提出了一个适用于Top-K推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的Top-K off-policy策略用于处理同一时间的多个item;展示了探索的意义.">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/5286725/74462548-5fc07f00-4ecb-11ea-86f2-0bd2eac8da94.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> Top-K Off-Policy Correction for a REINFORCE Recommender System | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Top-K Off-Policy Correction for a REINFORCE Recommender System
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2020-02-12T17:31:22+08:00" content="2020-02-12">
+              2020-02-12 17:31
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2020/02/12/Top-K-Off-Policy-Correction-for-a-REINFORCE-Recommender-System/" class="leancloud_visitors" data-flag-title="Top-K Off-Policy Correction for a REINFORCE Recommender System">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>论文提出了一个适用于<em>Top-K</em>推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的<em>Top-K off-policy</em>策略用于处理同一时间的多个<em>item</em>;展示了探索的意义.<br><a id="more"></a></p>
+<h3 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a><em>Introduction</em></h3><p>推荐系统需要持续的适应用户的兴趣变化(<em>state</em>),给大量的用户推荐合适的内容.但是目前用户通常只被曝光了很小一部分的内容,至于有显示反馈(<em>feedback</em>)的内容就更少了,因此并没有多少关于大量用户状态和空间的数据.对于成熟的工业系统,上述问题会变得更加严重,因为用户的状态和空间在持续增加,新的<em>items</em>的显示反馈就更加稀疏了.作者以<em>Reinforce Learning</em>算法为基础,构建了一个后选集生成器(<em>top-K recommender system</em>),用于处理超大规模的用户状态和空间.要构建这样一个系统,还需要解决训练数据的问题.RL推荐系统是无法通过<em>self-play</em>和<em>simulation</em>获得数据的,因为无法得知<em>reward</em>是多少.为了解决这个问题,作者提出了一个<em>off-policy</em>方法,在训练模型学习先前的策略的同时对数据中的<em>bias</em>进行修正.虽然标准的<em>off-policy</em>对于<em>top-1</em>系统是非常优秀的,但是<em>top-K</em>系统能带来更大的优势.论文的主要贡献有:</p>
+<ul>
+<li>将<em>Reinforce policy-gradient-base</em>方法拓展到超大的推荐系统空间中;</li>
+<li>利用<em>off-policy</em>修正学习<em>feedback</em>中的数据;</li>
+<li>提出了一个<em>top-K off-policy</em>修正策略同时输出多组数据;</li>
+<li>在生产系统中展示了RL的能力;</li>
+</ul>
+<h3 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a><em>Related Work</em></h3><p>传统的<em>Reinforcement Learning</em>方法包括<em>Value-based(Q-learning)</em>以及<em>policy-based(policy gradients)</em>.虽然<em>Value-based</em>方法有很多优点,比如可以进行无缝的<em>off-policy</em>学习,但是在函数近似时不稳定,而<em>policy-based</em>的策略则相对而言稳定的多.</p>
+<ul>
+<li><em>Neural Recommenders</em>. 越来越多的<em>Recommenders</em>使用<em>RNN</em>学习历史信息和瞬时信息.本文也同样采用相似的网络结构迭代用户状态;</li>
+<li><em>Bandit Problem</em>. <em>UCB</em>在<em>exploration</em>和<em>exploitation</em>之间取得了一个平衡,<em>Thomson sampling</em>也已经被用于<em>Recommender system</em>了.</li>
+<li><em>Propensity Scoring and Reinforcement Learning in Recommender Systems</em>. learing off-policy会慢慢影响policy gradient,随着policy演化,gradient期望所依赖的分布也会发生改变.限制policy更新可以抑制这种情况,目前已经用于机器人领域了,但是在Recommender system系统中,gradient剧烈变化是非常正常的.此外,相对于巨大的state和action空间,feedback获取的速度也是非常慢的.offline评估是Recommender system中一个巨大的挑战.目前针对这个问题已经有多个解决思路,<em>inverse-propensity scores,capped inverse-propensity scores </em>和 <em>various variance control</em>.</li>
+</ul>
+<h3 id="Reinforce-Recommender"><a href="#Reinforce-Recommender" class="headerlink" title="Reinforce Recommender"></a>Reinforce Recommender</h3><p>对每一个用户(user),考虑用户与系统之间交互的历史记录中的一个序列,这个序列记录了recommender的actions,例如推荐的videos和用户点击或观看时间等反馈.给定一个序列,预测下一个采取的action,例如推荐的video,这样通过点击情况和观看时间测得的用户满意度指数就会提高.<br>将上述过程转换成MDP(Markov Decision Process)$(S,A,P,R,\rho_0,\gamma)$:</p>
+<ul>
+<li>$S$:表示用户状态的连续空间(state space);</li>
+<li>$A$:离散的action space,包含可用于推荐的items;</li>
+<li>$P$:$S*A*S\to R$,状态转移的概率;</li>
+<li>$R$:$S*A\to R$,reward函数,其中$r(s,a)$是在状态$s$采取action $a$获得的immediate reward.</li>
+<li>$\rho_0$是初始state distribution;</li>
+<li>$\gamma$是future的discount factor;</li>
+</ul>
+<p><strong>我们的目标是寻找一个policy $\pi(a|s)$,在状态$s\in S$条件下,生成一个$a\in A$的分布,从而使的recommender sytem获得最大累计reward.</strong></p>
+<p>$$<br>\max\limits_\pi E_{\tau \backsim \pi }[R(\tau)],\;where\;R(\tau)=\sum_{t=0}^{|\tau|}r(s_t,a_t)<br>$$</p>
+<p>这里所求得的是路径$\tau=(s_0,a_0,s_1,a_1,…)$上的期望,而$\tau$是根据policy:$s_0 \backsim \rho_0,a_t \backsim \pi(.|s_t),s_{t+1} \backsim P(.|s_t,a_t)$所得.</p>
+<p>解决上述RL问题有多种方法,如Q-learning,Policy Gradient,以及blackbox optimization.本文采用的是policy-gradient-based方法.</p>
+<p>我们假设policy的函数为$\pi_{\theta},\theta \in R^d$,利用log-trick,我们可以得到policy参数对应的cumulative reward的期望.<br>$$<br>E_{\tau \backsim \pi_{\theta}}[R(\tau)\nabla_\theta\log\pi_{\theta}(\tau)]\tag{1}<br>$$<br>在on-line RL中,计算policy gradient的路径是由policy生成的,policy的无偏估计可以解构为:<br>$$<br>\sum_{\tau\backsim\pi_\theta}R(\tau)\nabla_\theta\log\pi_{\theta}(\tau) \approx \sum_{\tau\backsim\pi_\theta}\left[ \sum_{t=0}^{|\tau|} R_t \nabla_\theta\log\pi_{\theta}(a_t|s_t) \right] \tag{2}<br>$$<br>这里,我们用$t$时间的$R_t=\sum_{t’=t}^{|\tau|} \gamma^{t’-t} r (s_{t’},a_{t’})$作为discount reward来替换$R(\tau)$,减小gradient估计的variance.</p>
+<h3 id="Off-Policy-Correction"><a href="#Off-Policy-Correction" class="headerlink" title="Off-Policy Correction"></a>Off-Policy Correction</h3><p>限于广告系统的架构,我们的learner无法控制recommender system.也就是说,我们无法通过在线更新policy并更具更新后的policy立即得到相应的路径(trajectory).我们只能从历史policy产生的action中得到logged feedback,它与我们policy更新所产生的action space可能有不同的分布.<br>事实上我们是每隔几个小时获取一次数据,并且在部署policy之前计算了很多次policy.这也就意味着用于估计policy gradient的路径集合(set of trajectories)是由另一个不相同的policy所产生的.此外,RL还会使用其他途径获取的批量feedback数据,这中数据与policy的差异性更大.如果等式$(2)$中的gradient是根据更新后的$\pi_\theta$随机sampling 来自历史policy组合$\beta$的trajectories,那么简单的policy gradient estimator就是无偏的.</p>
+<p><strong>我们通过importance weight来解决distribution mismatch</strong>.对于来自policy $\beta$的路径$\tau=(s_0,a_0,s_1,…)$,off-policy-corrected gradient policy 是:</p>
+<p>$$<br>\sum_{\tau \backsim \beta} \frac{\pi_\theta(\tau)}{\beta(\tau)}\left[\sum_{t=0}^{|\tau|} R_t \nabla_\theta\log\pi_{\theta}(a_t|s_t)\right]<br>$$<br>其中importance weight是:<br>$$<br>\frac{\pi_\theta(\tau)}{\beta(\tau)}=\frac{\rho(s_0)\prod_{t=0}^{|\tau|} P(s_{t+1}|s_t,a_t)\pi(a_t|s_t) }{\rho(s_0)\prod_{t=0}^{|\tau|} P(s_{t+1}|s_t,a_t)\beta(a_t|s_t)} = \prod_{t=0}^{|\tau|}\frac{\pi(a_t|s_t)}{\beta(a_t|s_t)}<br>$$<br>上述修能对来自policy $\beta$的trajectory数据进行无偏估计,但是由于整个计算过程中存在累乘,因此方差非常大,从而产生过大或者过小的importance weight.<br>为了减少时间$t$的方差,我们首先在chain product中忽略时间$t$之后的item,然后使用一阶近似:<br>$$<br>\prod_{t’=0}^{|\tau|} \frac{\pi(a_t’|s_t’)}{\beta(a_t’|s_t’)} \thickapprox \prod_{t’=0}^{t}\frac{\pi(a_t’|s_t’)}{\beta(a_t’|s_t’)} = \frac{P_{\pi_\theta}(s_t)\pi(a_t|s_t)}{P_{\beta_\theta}(s_t)\beta(a_t|s_t)} \thickapprox \frac{\pi(a_t|s_t)}{\beta(a_t|s_t)}<br>$$<br>根据上面的式子,我们可以得到:<br>$$<br>\sum_{\tau \backsim \beta} \left[\sum_{t=0}^{|\tau|} \frac{\pi_\theta(a_t|s_t)}{\beta(a_t|s_t)}R_t \nabla_\theta\log\pi_{\theta}(a_t|s_t)\right] \tag{3}<br>$$</p>
+<h4 id="Parametrising-the-policy-pi-theta"><a href="#Parametrising-the-policy-pi-theta" class="headerlink" title="Parametrising the policy $\pi_\theta$"></a>Parametrising the policy $\pi_\theta$</h4><p>我们用一个n维向量$s_t\in R^n$表示在$t$时刻捕获的用户兴趣, 用一个m维的向量$u_{a_t} \in R ^m$表示采取的action.我们使用一个RNN网络来拟合转移函数$P:S*A*S$:<br>$$<br>s_{t+1} =f(s_t,u_{a_t})<br>$$</p>
+<p>比较了LSTM,GRU以及各种RNN变形之后,作者选择CNF(Choas Free RNN)作为拟合转移函数的模型,CNF具有比较好的稳定性和计算效率.<br>$$<br>\begin{align}<br>&amp;s_{t+1} = z_t \odot  tanh(s_t) + i_t \odot tanh(W_au_a) \\<br>&amp;z_t = \sigma(U_zs_t+W_zu_{a_t}+b_z)\\<br>&amp;i_t = \sigma(U_is_t+W_iu_{a_t}+b_i)\\<br>\end{align} \tag{4}<br>$$<br>policy $\pi_\theta(a|s)$那么可以用一个简单的softmax来表示了:</p>
+<p>$$<br>\pi_\theta(a|s) = \frac{exp(s^Tv_a/T)}{\sum_{a’ \in A}exp(s^Tv_{a’}/T)} \tag{5}<br>$$<br>其中,$v_a \in R^n$ 状态空间$A$中的action $a$的另一个embedding表示.$T$代表系统的温度,$T$越大,整个系统越平缓.用于正则化的分母需要考虑所有的action情况,这个计算量通常在百万级别.因此,<strong>作者在训练时采用了sampled softmax.在servering时候,则采用了一种比较高效的最近邻搜索算法来获取概率最高的actions,用于模拟softmax probability.</strong></p>
+<p>总的来说,参数$\theta$包括两组action的embedding $U\in R^{m*|A|}$以及$V \in R ^{n*|A|}$,以及对应的权重矩阵 $U_z,U_i \in R ^{n*n}$, 以及RNN中的参数 $W_u,W_i,W_a \in R ^{n*m}$ 和 $b_u,b_i \in R ^{n}$.</p>
+<div style="width: 400px;margin:auto"><br><img src="https://user-images.githubusercontent.com/5286725/74462548-5fc07f00-4ecb-11ea-86f2-0bd2eac8da94.png" alt="图片"><br></div>
+
+<p>图1展示了main policy $\pi_\theta$的神经网络结构,给定采样自观察行为policy $\beta$的trajectory $\tau = (s_0,a_0,s_1,…)$,新的policy首先会从初始状态$s_0 \backsim \rho _0$生成状态$s_{t+1}$,给定状态$s_{t+1}$,策略会最终生成一个distribution(softmax).得到了$\pi_\theta(a_{t+1}|s_{t+1})$我们就可以计算梯度了.</p>
+<h4 id="Estimating-the-behavior-policy-beta"><a href="#Estimating-the-behavior-policy-beta" class="headerlink" title="Estimating the behavior policy $\beta$"></a>Estimating the behavior policy $\beta$</h4><p>off-policy corrected estimator遇到的第一个难题就是需要获得behavior policy $\beta$.理想情况下,每一个action都会与其对应的概率一起被记录下来.然而,直接记录action的概率并不现实,系统中拥有大量不受控制的policy agent,此外有些policy agent的无法使用概率表示.<br>为了解决上述问题,作者采用了&lt; Learning from Logged Implicit Exploration Data >中类似的算法,使用logged actions来估计mutiple agents的混合policy $\beta$.给定一组logged feedback $D={(s_i,a_i),i=1,2,…,N} $,Strehlet al.通过聚合用户state数据集中的action频率估计$\hat{\beta}(a)$.与Strehlete相反,作者采用了一个context-dependent neural estimator.对于每一组$(s,a)$,利用另一组参数$\theta’$和softmax来估计$\hat{\beta_{\theta’}}(a|s)$.正如上图Fig1所示,作者重用了RNN生成的user state,然后使用另一组softmax来拟合behavior policy.为了阻止behavior的gradient干扰RNN,作者阻止了behavior policy的graient flow.作者也尝试过将$\pi_\theta$和$\beta_{\theta’}$分开估计,除了增加了计算成本之外,并没有指标上的提升.<br>虽然policy head $\pi_\theta$和$\beta_{\theta’}$共享了大量的参数,但是他们之间有着显著的区别:(1)policy $\pi_\theta$训练时使用了一个weight softmax,并且考虑了长期reward,而 $\beta_{\theta’}$只使用了state-action对.(2)policy $\pi_\theta$只使用了那些non-zero reward的trajectory上的数据,$\beta_{\theta’}$为了避免引入偏差,采用了所有trajectory上的数据.<br>一个有争议的点在于,对于某些确定性的策略,比如在$(t_1,s)$肯定会选择$a$,$(t_2,s)$肯定会选择$b$,在整个记录周期内可以被认为是在action a 和action b之间随机选择的.这一点作者也提出了自己的看法,由于有多种策略同时在运行,既然对于特定state $s$,一定会选择$a$或者$b$,那么统计最终的$a,b$的频率就可以认为是state $s$下选择这两种状态的一个近似.</p>
+<h4 id="Top-K-Off-Policy-Correction"><a href="#Top-K-Off-Policy-Correction" class="headerlink" title="Top-K Off-Policy Correction"></a>Top-K Off-Policy Correction</h4><p>另一个挑战是,系统可能需要同时输出k个推荐选项,所以需要选择出多个item而不是一个item,换句话说我们寻找的是一个能使的累计reward最大化的policy $\prod_\Theta(A|s)$.<br>$$<br>\max\limits_\theta E_{\tau \backsim \prod_\theta} \left[\sum_t r(s_t,A_t) \right]<br>$$<br>其中路径$\tau=(s_0,A_0,s_1,…)$是通过$s_0 \backsim \rho_0,A_t \backsim \prod(|s_t),s_{t+1} \backsim P(.|s_t,A_t)$.不幸的是上述等式中的action space是指数型增长的,尤其是当我们需要从millions的action中挑选所需的集合.<br>为了使得上述问题变成可解的,<strong>我们假设一个无重复的items集合的reward等于其中每一个item的reward的总和</strong>.更近一步,我们认为集合$A$是可以通过对policy $\pi_\theta$独立采样action $a$,然后去重得到.也就是说:</p>
+<p>$$<br>\prod_\Theta(A’|s)=\prod\limits_{a\in A’ } \pi_\theta(a|s)<br>$$<br>需要注意的是$A’$是一个存在重复item的集合,对其去重之后可以得到目标集合$A$.</p>
+<p>基于上述假设,我们可以更新等式$(2)$中的gradient了:</p>
+<p>$$<br>\sum_{\tau\backsim\pi_\theta}\left[ \sum_{t=0}^{|\tau|} R_t \nabla_\theta\log\alpha_{\theta}(a_t|s_t) \right]<br>$$<br>其中,$\alpha_{\theta}(a_t|s_t) = 1 - (1- \pi_\theta(a|s))^K$是action $a$出现在最终集合$A$中的概率.这里,$K=|A’|&gt;|A|=k$.<br>然后我们可以将等式$(3)$中corrected gradient 中的$\alpha_\theta$替换成$\pi_\theta$,得到top-K off-policy的correction factor.<br>$$<br>\sum_{\tau \backsim \beta} \left[\sum_{t=0}^{|\tau|} \frac{\alpha_\theta(a_t|s_t)}{\beta(a_t|s_t)}R_t \nabla_\theta\log\alpha_{\theta}(a_t|s_t)\right]=\sum_{\tau \backsim \beta} \left[\sum_{t=0}^{|\tau|} \frac{\pi_\theta(a_t|s_t)}{\beta(a_t|s_t)} \frac{\partial\alpha(a_t|s_t)}{\partial\pi(a_t|s_t)} R_t \nabla_\theta\log\pi_{\theta} (a_t|s_t)\right] tag{6}<br>$$<br>对比等式(6)和等式(3),top-K policy相比于原先的修正参数$\frac{\pi(a|s)}{\beta(a|s)}$增加了一个乘数:<br>$$<br>\lambda_K(s_t,a_t) = \frac{\partial\alpha(a_t|s_t)}{\partial\pi(a_t|s_t)} = K(1-\pi_\theta(a_t|s_t))^{K-1} \tag{7}<br>$$<br>接下来我们看看新增加的这个乘数的特性:</p>
+<ul>
+<li>随着$\pi_\theta(a|s) \to 0,\lambda_K(s,a)\to K$.top_K off-policy correction相比标准的off-policy更新policy的时候会增加一个K factor.</li>
+<li>随着$\pi_\theta(a|s) \to 1 ,\lambda_K(s,a)\to 0$,这个factor会阻止更新;</li>
+<li>随着$K$增加,这个乘数会比$\pi_\theta(a|s)$更快的减少gradient到一个合适的范围;</li>
+</ul>
+<p>总的来说,当目标item在softmax policy $\pi_\theta(.|s)$中拥有一个比较小的mass时,top-K correction会更激进的增加其likehood;当目标item在softmax policy $\pi_\theta(.|s)$拥有一个合适的mass时,correction 会zeros 掉gradient更新,避免进一步增加其likehood.这样也就能够使其他的item增加一部分mass了.正如后面所展示的,标准的off-line policy能够在single recommendation中取得比较好的结果,top-K correction能够在top-K recommendation中取得比较好的效果.</p>
+<h4 id="Variance-Reduction-Techniques"><a href="#Variance-Reduction-Techniques" class="headerlink" title="Variance Reduction Techniques"></a>Variance Reduction Techniques</h4><p>正如本章节开头所讲到的,我们采用first-order近似来减小gradient estimate中的方差,虽然如此,考虑到等式(3)中用于top-K off-line policy correction的Similarityimportance weight $\omega(s,a)=\frac{\pi(a|s)}{\beta(a|s)}$会出现比较大的值,这会导致:(1)<strong>新的policy \pi(.|s)会有比较大的导数,尤其是那些很少被探索到的区域</strong>,也就是$\pi (a|s) \gg \beta(a|s)$;(2) 在$\beta$估计时产生比较大的方差<br>我们测试了一些减小方差的方法,不过这些方法都会引入额外的偏差.</p>
+<ul>
+<li><p>weight capping.直接限制weight<br>$$<br>\varpi_c(s,a)=\min\left(\frac{\pi (a|s)}{\beta(a|s)},c\right)<br>$$<br>不过这会引入新的bias.</p>
+</li>
+<li><p>Normalize importance sampling(NIS),第二种办法是引入ratio control 变量.<br>$$<br>\varpi_c(s,a)= \frac{\omega_c(s,a)}{\sum_{(s’,a’) \backsim \beta}\omega_c(s’,a’)}<br>$$<br>由于$E_\beta[\omega(s,a)]=1$,正则常数等于n,也就是batch 的size.当n增加时,等价于减小了学习速率.</p>
+</li>
+<li><p>TRPO,对两个policy之间的KL距离引入惩罚,效果类似于capping weight.</p>
+</li>
+</ul>
+<h3 id="Exploration"><a href="#Exploration" class="headerlink" title="Exploration"></a>Exploration</h3><p>training data的分布对于训练出一个比较好的policy是十分重要的.查询那些基本不会被采用的action的相关policy研究已经有很多了,实际上,brute-force搜索如$\epsilon$-greedy并不适用于生产系统,相关的研究显示它会给出不合理的推荐结果.作者采用的了Boltzmann exploration方法,该方法能够在尽量获取探索优点的同时不影响用户体验.<strong>作者采用一个recommendations都是从$\pi_\theta$中采样出来的随机policy,而不是选取概率最大的K个items.</strong>这可能会带来比较大的计算性能开销,因为需要计算整个softmax,不过作者采用了最近邻算法来对softmax进行近似,选取$M$个item.然后再将这$M$个item放入新的softmax之中,然后再进行抽样.通常情况下,$M \gg K$,这样依然可以确保能够获得大部分的概率质量,减少效果差的推荐概率,并且能够取得比较好的计算性能.实际中,作者再exploration和exploitation之间做了一个平衡,按照概率大小选出$K’$个item,然后从$M-K’$中随机选择出剩下的$K-K’$个item.</p>
+<h3 id="EXPERIMENTAL-RESULTS"><a href="#EXPERIMENTAL-RESULTS" class="headerlink" title="EXPERIMENTAL RESULTS"></a>EXPERIMENTAL RESULTS</h3><p>本章节展示了前面解决bias的方法在应对工业级规模的模拟环境和正式环境中的有效性.</p>
+<h4 id="Simulation"><a href="#Simulation" class="headerlink" title="Simulation"></a>Simulation</h4><p>为了简化模拟程序,我们假设问题是无状态的,也就是说reward $R$是独立于用户状态的,并且action也不会改变用户状态.也就是路径(trajectory)上的action可以被随机选择.</p>
+<h5 id="Off-policy-correction"><a href="#Off-policy-correction" class="headerlink" title="Off-policy correction"></a>Off-policy correction</h5><p>在第一个simulation中,我们假设有10个items $A={a_i,i=1,2,3,…}$.每一个item的reward等于其index,也就是$r(a_i) = i$.当我们只选择一个item的时候,最佳策略永远是选择第10个,也就是$\pi^{*}(a_i)=I(i=10)$.给定来自behavior policy $\beta$的观察数据,如果简单的应用policy gradient而不考虑数据的bias,那么policy就会收敛到:<br>$$<br>\pi(a_i) = \frac{r(a_i)\beta(a_i)}{\sum_j r(a_j)\beta(a_j)}<br>$$<br>这种策略一个显而易见的缺点在于,behavior policy越是挑选sub-optimal item,新的policy越是容易挑选同一个biased item.</p>
+<div style="width: 400px;margin:auto"><br><img src="https://user-images.githubusercontent.com/5286725/74585779-a7eeb700-501b-11ea-96a0-d41be713d3df.png" alt="图片"><br></div>
+
+<p>图2比较了当behaviod policy $\beta$出现扭曲,倾向于选择最小reward时,使用SGD在有无off-policy情况下学习出来的$\pi_\theta$.正如图2中左边现实的,不考虑数据偏差导致的sub-optimal policy,简单的使用policy gradient 而不考虑长期reward,我们得到的策略是一个比较差的,仅仅会模仿behavior policy. 另一方面,采用了off-policy correction策略之后,会得到optimal policy $\pi^*$.</p>
+<h5 id="Top-K-off-policy-correction"><a href="#Top-K-off-policy-correction" class="headerlink" title="Top-K off-policy correction"></a>Top-K off-policy correction</h5><p>假设有10个items,其中$r(a_1) = 10, r(a_2) = 9$,剩下的items的reward小的$r(a_i)=1,i=3,4,…,10$.我们希望同时推荐两个item,也就是$K=2$. Behaviod policy $\beta$服从uniform distribution.给定一组从$\beta$抽样出来的观察数据$(a_i,r_i)$,标准的off-policy  correction 的SGD更新策略如下:<br>$$<br>\theta_j = \theta_j  + \eta \frac{\pi_\theta(a_j)}{\beta(a_j)}r(a_j)\left[I(j=i) - \pi_\theta(a_j) \right], \forall _j = 1,…,10<br>$$</p>
+<p>其中$\eta$是学习速率,SGD关于持续按照$\pi_\theta$下的期望reward比例增加item $a_i$的似然度直到$\pi_\theta(a_i)=1$,在这种情况下,其gradient为0.Top-K off-policy correction的更新形式如:<br>$$<br>\theta_j = \theta_j  + \eta \lambda _K\frac{\pi_\theta(a_j)}{\beta(a_j)}r(a_j)\left[I(j=i) - \pi_\theta(a_j) \right], \forall _j = 1,…,10<br>$$<br>其中$ \lambda _K(a_i)$是4.3节中定义的乘子,当$\pi_\theta(a_i)$比较小的时候,$\lambda _K(a_i) = K$ ,所以SGD会更激进的增加$a_i$.当$\pi_\theta(a_i)$到达一个比较大的值的时候,$ \lambda _K(a_i)$会变成0.也就是说,SGD不会强制增加该item的likehood,<strong>即使是$\pi_\theta(a_i)$依然小于1.</strong>这反过来允许第二最优item在学习到的policy中占据一些mass.</p>
+<p><div style="width: 400px;margin:auto"><br><img src="https://user-images.githubusercontent.com/5286725/74591977-c672a380-5057-11ea-97de-d4f476fa9537.png" alt="image"><br></div><br>对比可以看出,左边采用标准的off-policy得到的结果是虽有mass都被$a_1$占据,也就是$\pi(a_1) \thickapprox 1.0$,这样我们就失去了区分sub-optimal和剩余的item的能力,右边可以看到,mass在top-1和second optimal之间分配.</p>
+<h4 id="Live-Experiments"><a href="#Live-Experiments" class="headerlink" title="Live Experiments"></a>Live Experiments</h4><p>直接reward被设计的能反应用户行为;那些被推荐了但是没有被点击的视频的reward是0.长时间的reward $R$是4-10小时之间的数据汇总.对照组和实验组采用相同的reward函数.实验持续了几天,在此过程中,模型在持续的训练,新的events在延时24小时候被加入进来.这里展示的实验结果显示了系统在生产系统中的一系列提升.但是有一个问题是,一旦测试系统进入生产系统对比试验,生成的数据会成为下一次训练的输入数据,因此,每一次的实验都应当单独作为其中一个模块的分析资料.并且在之后的介绍中,都会给出系统训练数据是来自什么样的recommender system.</p>
+<h5 id="Exploration-1"><a href="#Exploration-1" class="headerlink" title="Exploration"></a>Exploration</h5><p>首先需要讲的是,exploration对提高模型性能的影响.特别的,作者还对测试了按照Section 5中的softmax model随机的policy是否比一个确定挑选top-K最高概率的policy表现更好.首先比较stochastic policy 和deterministic policy.</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li>A RECURRENT NEURAL NETWORK WITHOUT CHAOS</li>
+<li>quick training of probabilistic neural nets by importance sampling</li>
+<li>Learning from Logged Implicit Exploration Data</li>
+<li>Policy gradient methods for reinforcement learning with function approximation</li>
+<li>Cortical substrates for exploratory decisions in humans</li>
+<li>Monte Carlo theory, methods and examples</li>
+<li>Trust region policy optimization</li>
+<li>Short-term satisfaction and long-term coverage: Understanding how users tolerate algorithmic exploration.</li>
+</ul>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/papers/" rel="tag">#papers</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/02/16/肺炎下的中国/" rel="prev">
+                <i class="fa fa-chevron-left"></i> 肺炎下的中国
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/11/揾食北京/" rel="next">
+                揾食北京 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Related-Work"><span class="nav-number">2.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reinforce-Recommender"><span class="nav-number">3.</span> <span class="nav-text">Reinforce Recommender</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Off-Policy-Correction"><span class="nav-number">4.</span> <span class="nav-text">Off-Policy Correction</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Parametrising-the-policy-pi-theta"><span class="nav-number">4.1.</span> <span class="nav-text">Parametrising the policy $\pi_\theta$</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Estimating-the-behavior-policy-beta"><span class="nav-number">4.2.</span> <span class="nav-text">Estimating the behavior policy $\beta$</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Top-K-Off-Policy-Correction"><span class="nav-number">4.3.</span> <span class="nav-text">Top-K Off-Policy Correction</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Variance-Reduction-Techniques"><span class="nav-number">4.4.</span> <span class="nav-text">Variance Reduction Techniques</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exploration"><span class="nav-number">5.</span> <span class="nav-text">Exploration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EXPERIMENTAL-RESULTS"><span class="nav-number">6.</span> <span class="nav-text">EXPERIMENTAL RESULTS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Simulation"><span class="nav-number">6.1.</span> <span class="nav-text">Simulation</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Off-policy-correction"><span class="nav-number">6.1.1.</span> <span class="nav-text">Off-policy correction</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Top-K-off-policy-correction"><span class="nav-number">6.1.2.</span> <span class="nav-text">Top-K off-policy correction</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Live-Experiments"><span class="nav-number">6.2.</span> <span class="nav-text">Live Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Exploration-1"><span class="nav-number">6.2.1.</span> <span class="nav-text">Exploration</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">7.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>

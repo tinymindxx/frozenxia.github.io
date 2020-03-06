@@ -1,0 +1,816 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head><meta name="generator" content="Hexo 3.8.0">
+  
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5">
+
+
+
+  
+    <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0">
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2">
+
+
+
+
+  <meta name="keywords" content="machine learning,">
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2">
+
+
+<meta name="description" content="GMM(Gausian Mixture Model)也被称作高斯混合模型,可以看成是K-means的一种软性实现.通常我们也会将GMM模型当作是EM方法使用的案例,因此后面我们会将EM也一起讲.">
+<meta name="keywords" content="machine learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GMM Model">
+<meta property="og:url" content="http://yoursite.com/2019/12/19/GMM-Model/index.html">
+<meta property="og:site_name" content="Hello">
+<meta property="og:description" content="GMM(Gausian Mixture Model)也被称作高斯混合模型,可以看成是K-means的一种软性实现.通常我们也会将GMM模型当作是EM方法使用的案例,因此后面我们会将EM也一起讲.">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/71228192-73f95d00-231c-11ea-84e6-6b311dafa272.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/71406679-e5664200-2673-11ea-9467-f3c5b75514d9.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/5286725/71406761-0fb7ff80-2674-11ea-9d24-baf8d1a18321.png">
+<meta property="og:updated_time" content="2020-03-04T12:49:35.448Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GMM Model">
+<meta name="twitter:description" content="GMM(Gausian Mixture Model)也被称作高斯混合模型,可以看成是K-means的一种软性实现.通常我们也会将GMM模型当作是EM方法使用的案例,因此后面我们会将EM也一起讲.">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/5286725/71228192-73f95d00-231c-11ea-84e6-6b311dafa272.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> GMM Model | Hello </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang>
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;"></span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                GMM Model
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            Posted on
+            <time itemprop="dateCreated" datetime="2019-12-19T14:22:06+08:00" content="2019-12-19">
+              2019-12-19 14:22
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp; In
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+            <span id="/2019/12/19/GMM-Model/" class="leancloud_visitors" data-flag-title="GMM Model">
+            &nbsp; | &nbsp;   
+            views
+            </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>GMM(Gausian Mixture Model)也被称作高斯混合模型,可以看成是K-means的一种软性实现.通常我们也会将GMM模型当作是EM方法使用的案例,因此后面我们会将EM也一起讲.<br><a id="more"></a></p>
+<h3 id="EM算法"><a href="#EM算法" class="headerlink" title="EM算法"></a>EM算法</h3><h4 id="Jassen不等式"><a href="#Jassen不等式" class="headerlink" title="Jassen不等式"></a>Jassen不等式</h4><p>EM算法是一种贪心算法,当我们需要优化的函数是凸函数的时候,我们可以利用Jassen不等式来逐步提高函数的下限,从而不断优化函数.Jassen不等式的定义如下:</p>
+<ul>
+<li>如果$f$是凸函数,$X$是随机变量,则$E[f(X)]&gt;=f(E[x])$,当$f$是严格凸函数时,$E[f(X)]&gt;f(E[x])$;</li>
+<li>如果$f$是凹函数,$X$是随机变量,则$E[f(X)]&lt;=f(E[x])$,当$f$是严格凹函数时,$E[f(X)]&lt; f(E[x])$;</li>
+</ul>
+<p>通过下面这张图,可以比较容易理解:</p>
+<p><img src="https://user-images.githubusercontent.com/5286725/71228192-73f95d00-231c-11ea-84e6-6b311dafa272.png" alt="2015-12-02-Jensen-inequality"></p>
+<p>上图中,函数$f$是凸函数,$X$是随机变量,有0.5的概率是$a$,0.5的概率是$b$.$X$的期望值$E(x)$就是$a$和$b$的中值$\frac{a+b}{2}$了,从上图中可以看到$E[f(X)] &gt;= f(E[x])$成立.</p>
+<h4 id="EM算法步骤"><a href="#EM算法步骤" class="headerlink" title="EM算法步骤"></a>EM算法步骤</h4><p>EM算法推导过程中,通常会使用极大似然估计法估计参数,通常最大似然估计的一般步骤如下:</p>
+<ol>
+<li>写出似然函数;</li>
+<li>对似然函数取对数,并整理;</li>
+<li>对整理后的似然函数求导,令导数为0,从而得到似然方程;</li>
+<li>求解似然方程,得到所需参数;</li>
+</ol>
+<p>给定$m$个训练样本$\left\{ x^{(1)},…,x^{(m)}\right \}$,<strong>假设样本之间相互独立</strong>,我们希望拟合模型$p(x,z)$得到数据的参数.根据分布,我们可以得到如下这个似然函数:</p>
+<p>$$<br>\begin{array}<br>\\<br>l(\theta)&amp;= \sum_{i=1}^{m} \log p(x;\theta) \\<br>&amp;= \sum_{i=1}^{m} \log \sum_{z} p(x,z;\theta)<br>\end{array} \tag{1}<br>$$</p>
+<p>第一步是对极大似然取对数,第二步是对每个样本实例的每个可能的类别$z$求联合分布概率之和.然而,直接求这个参数$\theta$会比较困难,因为上式存在一个隐含随机变量$z$.如果$z$是已知的,那么使用极大似然估计来估算会比较容易,$z$不确定的情况下,就可以使用EM算法了.</p>
+<p>EM通常是估计参数隐变量的利器,对于上述情况,由于存在隐含变量,因此无法直接最大化$l(\theta)$,所以只能不断的通过建立$l$的下界(E-step),再优化下界(M-step),依次迭代,直至算法收敛到局部最优解,这就是EM算法的核心思想.简单归纳为:</p>
+<ul>
+<li><strong>EM算法通过引入隐含变量$z$,使用MLE(最大似然估计)进行参数求解.</strong>通常,引入隐含变量之后会有两个参数,EM算法首先会固定第一个参数,然后用MLE求解第二个变量的值;接着通过固定第二个变量,再用MLE估测第一个变量的值,依次迭代,直到局部收敛.</li>
+</ul>
+<p>E-Step和M-Step:</p>
+<ul>
+<li>E-Step: 通过observed数据和现有模型参数(随机初始)估计值missing data;</li>
+<li>M-Step: 假设missing data已知的情况下,最大化似然函数(更新模型参数);</li>
+</ul>
+<h3 id="GMM模型"><a href="#GMM模型" class="headerlink" title="GMM模型"></a>GMM模型</h3><p>高斯混合模型(GMM)假设所有的样本点是有$K$个高斯分布混合而成的,例如某个班级里所有同学的身高,这些身高数据是由男生身高和女生身高这两个高斯分布混合而成的.假设我们已经知道班上所有同学的性别,如下图所示,我们很容易通过样本类别和样本身高估算出两个高斯分布的参数.<br><img src="https://user-images.githubusercontent.com/5286725/71406679-e5664200-2673-11ea-9467-f3c5b75514d9.png" alt="图片"></p>
+<p>但是现实中,我们往往无法确定样本来自哪个分类,如下图所示.从下图可以看出,样本的身高在150cm到180cm之间分布.<br><img src="https://user-images.githubusercontent.com/5286725/71406761-0fb7ff80-2674-11ea-9d24-baf8d1a18321.png" alt="图片"></p>
+<p>当我们只有身高份数据的时候,如何将身高数据聚类成男女两个族呢?这就是高斯混合分布需要解决的问题.高斯混合模型首先将问题转换为包含隐变量(每个样本属于不同分布的概率)和模型参数(男女两个高斯分布的参数)的极大似然估计问题.由于该极大似然估计问题中包含了隐变量和模型参数,因此无法直接通过传统的求偏导数的方法求得,这时候需要通过EM算法对参数进行估计.</p>
+<h4 id="E步推导"><a href="#E步推导" class="headerlink" title="E步推导"></a>E步推导</h4><p>按照EM算法的步骤,首先我们需要确定高斯混合模型的最大似然函数.<strong>假设样本数据都是独立的</strong>,那么所有样本出现的概率为每一个样本出现的概率的乘积,为了计算方便,通常我们会对这个乘积进行$\log$操作,得到$\log$似然函数:<br>$$<br>l(\theta) = \sum _{i=1} ^{m} \log p(x;\theta) \tag{2}<br>$$<br>上式中$\theta$表示模型的参数,即每个聚类对应的高斯分布的$\mu_{i},\Sigma _{i}$以及该分类的概率$\phi _i$.在这个问题中,还存在一个隐变量,<strong>就是每一个样本属于不同类别的概率</strong>.这个地方需要强调一点是,某个样本属于不同分类的类别和不同分类出现的概率是不一样的,用数学语言表示就是一个是$p(z_j|x_i)$,另一个是$p(z_j)$.对式(2)进行变形之后,我们可以得到:<br>$$<br>\begin{array}<br>\\<br>l(\theta) &amp;= \sum _{i=1} ^{m} \log p(x;\theta) \\<br>&amp;=\sum _{i=1} ^{m} \log \sum_{z} p(x,z;\theta) \\<br>&amp;=\sum _{i=1} ^{m} \log \sum_{z^{(i)}} Q_i(z^{(i)}) \frac {p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})} \\<br>&amp;\geq  \sum _{i}  \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac {p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})} \\<br>\end{array} \tag{3}<br>$$<br>这里引入$Q$函数,且使用了Jassen不等式.我们将$\frac {p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}$当作$X$,由于$\log(x)$的二阶导数是$-\frac{1}{x^2} &lt; 0$,因此$f(x)$是凹函数,所以可以得(3)中的结论,也就是$l(\theta)$的下界.通过最大化下界,我们就可以迭代求的$\log$似然函数的最大值.要求的似然函数的下界,$(3)$中的不等式需要等式成立.由于Jassen不等式的性质可知,为了让等式成立,需要满足:<br>$$<br>\frac{p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})} = C \tag{4}<br>$$<br>其中$C$是常数.$(4)$中还包含一个隐含条件,那就是$\sum_{z^{(i)}}Q_i(z^{(i)})=1$,因此对等式进行简单变形之后,可以得到$\sum_{z^{(i)}}{p(x^{(i)},z^{(i)};\theta)}=C$,在将这个结论代如$(4)$中,可以得到:<br>$$<br>{Q_i(z^{(i)})}= \frac{p(x^{(i)},z^{(i)};\theta)} {C} = \frac{p(x^{(i)},z^{(i)};\theta)}{\sum_{z^{(i)}}{p(x^{(i)},z^{(i)};\theta)}}=p(z^{(i)}|x^{(i)};\theta) \tag{5}<br>$$<br>也就是说,${Q_i(z^{(i)})}$等与$p(z^{(i)}|x^{(i)};\theta)$,即$z^{(i)}$的后验分布.根据Bayes公式,可以得到:<br>$$<br>\begin{array}<br>\\<br>{Q_i(z^{(i)}=j)}&amp;={p(z^{(i)}=j|x^{(i)} )}\\<br>&amp;= \frac{p(x^{(i)},z^{(i)}=j;\theta)}{\sum_{z^{(i)}}{p(x^{(i)},z^{(i)};\theta)}}\\<br>&amp;=\frac{p(x^{(i)}|z^{(i)}=j;\theta)p(z^{(i)}=j)}{\sum_{k=1}^{K}{p(x^{(i)}|z^{(i)}=k;\theta)p(z^{(i)}=k)}} \\<br>\end{array} \tag{6}<br>$$<br>式$(6)$就是E步所需要求的值,通过E步我们可以得到模型的隐变量${Q_i(z^{(i)}=j)}$.接下来,只需要在M步最大化$l(\theta)$就可以了.</p>
+<h4 id="M步推导"><a href="#M步推导" class="headerlink" title="M步推导"></a>M步推导</h4><p>对$(3)$中$l(\theta)$的下界进行最大化,就可以间接优化$l(\theta)$.根据我们的假设,数据是由混合高斯模型生成的,因此每一类数据$j$服从$N(\mu_j,\Sigma_j)$,也就是:<br>$$<br>p(x|z{(i)}=j;\theta) = \frac {1} {\sqrt {(2 \pi)^k |\Sigma_j|}} exp ^ { \left(- \frac {1}{2}(x-\mu_j)^T\Sigma_j^{-1}(x-\mu_j) \right)} \tag{7}<br>$$<br>因此,<br>$$\log p(x|z{(i)}=j;\theta) = -\frac{k}{2}\log {(2\pi)} - \frac {1}{2} \log |\Sigma_j| - \frac {1}{2} (x-\mu_j)^T\Sigma_j^{-1}(x-\mu_j)\tag{8}$$<br>根据$(3),(7)$可以得到:<br>$$<br>\begin{array}<br>\\<br>l(\theta) &amp;\geq \sum _{i}  \sum_{z^{(i)}} Q_i(z^{(i)}) \log \frac {p(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})} \\<br>&amp;=  \sum _{i}  \sum_{z^{(i)}} Q_i(z^{(i)}) \log {p(x^{(i)},z^{(i)};\theta)} - \Omega \\<br>&amp;=\sum _{i}  \sum_{z^{(i)}} Q_i(z^{(i)}) \log {p(x^{(i)}|z^{(i)};\theta)p(z^{(i)})}- \Omega \\<br>&amp;=\sum _{i=1} ^{m}  \sum_{k=1} ^{K} Q_i(z^{(i)}=k) \log {p(x^{(i)}|z^{(i)}=k;\theta)\phi_k}- \Omega \\<br>\end{array}\tag{9}<br>$$</p>
+<p>对$(8)$求$\mu_j$的偏导数,得到:<br>$$<br>\frac {\partial l(\theta)}{\partial \mu_j} = - \sum _{i=1} ^{m} Q_i(z^{(i)}=j)(x^{(i)}-\mu_j)\Sigma _j ^{-1}=0 \tag{10}<br>$$<br>对上式整理,等式两边同时乘以$\Sigma _j$,可以得到:<br>$$<br>\mu_j = \frac {1}{N_{k}} \sum _{i=1} ^{m} Q_i(z^{(i)}=j) x^{(i)} \tag{11}<br>$$<br>其中,$N_j=\sum _{i=1} ^{m} Q_i(z^{(i)}=j)$</p>
+<p>同理,对$\Sigma _j$求导得到:</p>
+<p>$$<br>\frac {\partial l(\theta)}{\partial \Sigma_j} = -  \frac{\sum _{i=1} ^{m}Q_i(z^{(i)}=j)}{2} \Sigma_j^{-1} + \frac {1} {2} \Sigma _j ^{-1} \left\{ \sum _{i=1} ^{m}Q_i(z^{(i)}=j) (x^{(i)}-\mu_j)(x^{(i)}-\mu_j)^T \right\} \Sigma _j ^{-1}=0 \tag{12}<br>$$<br>整理上式,等式两边同时乘以$\Sigma_j$,得到:<br>$$<br>\Sigma_j = \frac{1}{N_j} \sum _{i=1} ^{m} Q_i(z^{(i)}=j) (x^{(i)}-\mu_j)(x^{(i)}-\mu_j)^T \tag{13}<br>$$</p>
+<p>对$\phi_j$求导,这里需要考虑一个约束,也就是$\sum_j \phi_j=1$,因此我们需要引入拉格郎日系数,得到:<br>$$<br>\frac {\partial L}{\partial \phi_j} = \frac {\partial (l(\theta) + \lambda (\sum_j \phi_j -1)) }{\partial \phi_j}  = \lambda + \sum_{i=1}^{m} Q_i(z^{(i)}=j)\frac{1}{\phi_j} = 0 \tag{14}<br>$$<br>而$\lambda=-m$.简单证明就是将式(14)叠加$K$次,也就是$\sum \phi \lambda  + \sum_{k=1}^{K}\sum_{i=1}^{m} Q_i(z^{(i)}) = 0$,从而得到$\lambda=-m$.结合$(14)$我们可以得到<br>$$<br>\phi_j = \frac{N_j}{m} \tag{15}<br>$$</p>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>在推导EM算法的时候,就知道GMM模型是EM算法的典型应用.最近在推导Capsule算法的时候,发现里面使用了GMM算法,因此打算好好推导一下.网上现有的资源除了引用4中对整个过程推导比较详细外,其他的都是直接写E步和M步,而没有解释为什么E步和M步的推导原理,即使是Pattern Recognition and Machine Learning中也是直接使用E步,然后推导M步.为了获得完整的推导过程,我花了不少时间,结合引用中的几个资源,终于得到完整的推导过程了.希望能够对那些希望了解整个推导过程的人有所帮助.</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ol>
+<li><a href="http://www.csuldw.com/2015/12/02/2015-12-02-EM-algorithms/" target="_blank" rel="noopener">http://www.csuldw.com/2015/12/02/2015-12-02-EM-algorithms/</a></li>
+<li><a href="https://www.cnblogs.com/jerrylead/archive/2011/04/06/2006924.html" target="_blank" rel="noopener">https://www.cnblogs.com/jerrylead/archive/2011/04/06/2006924.html</a></li>
+<li><a href="https://blog.csdn.net/SZU_Hadooper/article/details/78090348" target="_blank" rel="noopener">https://blog.csdn.net/SZU_Hadooper/article/details/78090348</a></li>
+<li><a href="https://www.ibm.com/developerworks/cn/analytics/library/ba-lo-machine-learning-hands-on7-gmm/index.html" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/analytics/library/ba-lo-machine-learning-hands-on7-gmm/index.html</a></li>
+<li><a href="http://blog.pluskid.org/?p=39" target="_blank" rel="noopener">http://blog.pluskid.org/?p=39</a></li>
+<li>Pattern Recognition and Machine Learning 这本书的第九章</li>
+<li><a href="http://cs229.stanford.edu/syllabus.html" target="_blank" rel="noopener">http://cs229.stanford.edu/syllabus.html</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/machine-learning/" rel="tag">#machine learning</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/25/The-Book-of-Why/" rel="prev">
+                <i class="fa fa-chevron-left"></i> The Book of Why
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/08/AWS-re-Invent-2019/" rel="next">
+                AWS re:Invent 2019 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel>
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="frozenxia" itemprop="image">
+          <p class="site-author-name" itemprop="name">frozenxia</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#EM算法"><span class="nav-number">1.</span> <span class="nav-text">EM算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Jassen不等式"><span class="nav-number">1.1.</span> <span class="nav-text">Jassen不等式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EM算法步骤"><span class="nav-number">1.2.</span> <span class="nav-text">EM算法步骤</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GMM模型"><span class="nav-number">2.</span> <span class="nav-text">GMM模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#E步推导"><span class="nav-number">2.1.</span> <span class="nav-text">E步推导</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#M步推导"><span class="nav-number">2.2.</span> <span class="nav-text">M步推导</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后记"><span class="nav-number">3.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">frozenxia</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+</body>
+</html>
