@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -253,7 +253,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>MCMC采样是一种有效的求解算法,很多复杂的问题都可以通过MCMC采样得到不错的近似解.目前通用MCMC采样器有两种Stan和Jags,底层分别是Gibbs采样和HMC采样.这篇文章将就MCMC采样的来龙去脉做一些介绍,同时会介绍不同采样原理的优缺点.<br><a id="more"></a></p>
 <h3 id="Monte-Carlo-Sampling"><a href="#Monte-Carlo-Sampling" class="headerlink" title="Monte-Carlo Sampling"></a>Monte-Carlo Sampling</h3><p>Monte-Carlo作为一种随机模拟方法,与曼哈顿计划密切相关,为了保密所以起名Monte-Carlo,也有赌场随机的意思.最早的Monte-Carlo方法是为了求解一些不太好求解的求和或者积分问题.比如积分:<br>$$<br>\theta=\int_a ^b f(x)dx<br>$$</p>
 <p>如果我们很难求解出$f(x)$的原函数,那么这个积分比较难求解.我们可以通过Mote-Carlo方法进行模拟求解.假设函数的图像如下所示:<br><img src="https://user-images.githubusercontent.com/5286725/69949117-d59f8600-152b-11ea-87f2-bddd5a3f6fd8.png" alt="image"></p>
 <p>那么一个简单的思路是在$[a,b]$之间随机采样一个点$x_0$,然后用$f(x_0)$代表区间$[a,b]$上所有$f(x)$的值,那么上面的定积分的近似求解为:$(b-a)f(x_0)$.</p>

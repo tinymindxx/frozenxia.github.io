@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -248,7 +248,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>product-based neural network 通过交叉运算捕获变量之间的复杂关系。<br><a id="more"></a><br>Categorical变量经过Embedding操作之后，通过变量之间的交叉运算，得到变量之间的关系。交叉运算包括内积和外积。模型的架构图如下所示：</p>
+        <span itemprop="articleBody"><p>product-based neural network 通过交叉运算捕获变量之间的复杂关系。<br><a id="more"></a><br>Categorical变量经过Embedding操作之后，通过变量之间的交叉运算，得到变量之间的关系。交叉运算包括内积和外积。模型的架构图如下所示：</p>
 <p><img src="https://user-images.githubusercontent.com/5286725/59433632-8bf79d80-8e1c-11e9-9f1c-ec1898eaf500.png" alt="1"></p>
 <p>从图中可以看出，核心模块在product这一层。production有两种，内积和外积。<br>$v_i,v_j$的内积为 $&lt;v_i,v_j&gt;=\sum_{i=0}^{k}v_{i,f}*v_{j,f}$,内积层会计算$v_i,v_j$所有的组合，因此共有$N*(N-1)/2$种情况，相关的代码如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">embed_list = inputs</span><br><span class="line"></span><br><span class="line">row = []</span><br><span class="line">col = []</span><br><span class="line">num_inputs = len(embed_list)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(num_inputs - <span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(i + <span class="number">1</span>, num_inputs):</span><br><span class="line">        row.append(i)</span><br><span class="line">        col.append(j)</span><br><span class="line"></span><br><span class="line">p = tf.concat([embed_list[idx] <span class="keyword">for</span> idx <span class="keyword">in</span> row], axis=<span class="number">1</span>)</span><br><span class="line">q = tf.concat([embed_list[idx] <span class="keyword">for</span> idx <span class="keyword">in</span> col], axis=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">inner_product = p * q</span><br></pre></td></tr></table></figure></p>
 <p>对于外积，$pair=N*(N-1)/2,embedding_size=es,batch_size=bn$,有三种情况：</p>

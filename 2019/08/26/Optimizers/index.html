@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -248,7 +248,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>梯度下降是神经网络最常用的优化器,主流的机器学习框架都有实现各种梯度下降算法,但是这些算法都是以黒盒形式出现的.理解这些算法的动机以及实现,有助于更高的使用这些优化器.为了最小化目标函数$J(\theta),\theta \in \mathbb{R}^d$,我们会按照$\nabla J(\theta)$反方向更新$\theta$.学习速率$\eta$用于控制步长,算法沿着梯度下降的方向,最终会到达一个低点.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>梯度下降是神经网络最常用的优化器,主流的机器学习框架都有实现各种梯度下降算法,但是这些算法都是以黒盒形式出现的.理解这些算法的动机以及实现,有助于更高的使用这些优化器.为了最小化目标函数$J(\theta),\theta \in \mathbb{R}^d$,我们会按照$\nabla J(\theta)$反方向更新$\theta$.学习速率$\eta$用于控制步长,算法沿着梯度下降的方向,最终会到达一个低点.<br><a id="more"></a></p>
 <h2 id="梯度下降变种"><a href="#梯度下降变种" class="headerlink" title="梯度下降变种"></a>梯度下降变种</h2><p>梯度下降算法有三个变种,主要差异在于计算梯度时使用数据的多少,不同数据量代表了准确率和速度之间的折中.</p>
 <h3 id="Batch-Gradient-Descent"><a href="#Batch-Gradient-Descent" class="headerlink" title="Batch Gradient Descent"></a>Batch Gradient Descent</h3><p>原始的梯度下降算法在更新$\theta$的时候需要用到所有的数据:</p>
 <p>$$\theta = \theta - \eta . {\nabla}_{\theta}J(\theta)$$</p>

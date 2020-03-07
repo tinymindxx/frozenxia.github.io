@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -249,7 +249,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>MinHash是一种有效的降维方法,结合对应的LSH算法,能够比较快速的实现相似文本或者内容的查找,在广告系统或者推荐系统的粗选过程中有用到.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>MinHash是一种有效的降维方法,结合对应的LSH算法,能够比较快速的实现相似文本或者内容的查找,在广告系统或者推荐系统的粗选过程中有用到.<br><a id="more"></a></p>
 <h2 id="MinHash原理"><a href="#MinHash原理" class="headerlink" title="MinHash原理"></a>MinHash原理</h2><p>在解释MinHash之前,先看一下如果计算两个集合的相似性.要计算两个集合的相似性,有比较多的方式,比如可以计算两个集合的与夹角.在很多场景下,我们希望采取比较简单的方式来计算相似性,所以通常会采用Jaccard相似性:<br>$$sim(C_1,C_2)=|C_1\cap C_2|/|C_1 \cup C_2|$$<br>函数$h_{\pi}(C)=min_{\pi}\pi(C)$,其中$\pi(x)$是一个置换函数.那么有$Pr[h_{\pi}(C_1)=h_{\pi}(C_2)] = sim(C_1,C_2)$.假设$X$是一个doc的集合,$z\in X$,那么有$Pr[\pi(z)=min(\pi(X))] = 1 /|X|$.对于$\pi(y)=min(\pi(C_1 \cup C_2))$,那么$\pi(y)=min(\pi(C_1))\; if\; y\in C_1$ OR $\pi(y)=min(\pi(C_2))\; if\; y\in C_2$,如果上面两个都成立,那么有$y\in C_1 \cap C_2 $.因此可以得出:<br>$Pr[min(\pi(C_1))=min(\pi(C_2))] = |C_1\cap C_2|/|C_1 \cup C_2| = sim(C_1,C_2)$</p>
 <h2 id="MinHash实现"><a href="#MinHash实现" class="headerlink" title="MinHash实现"></a>MinHash实现</h2><p><img src="https://user-images.githubusercontent.com/5286725/64154151-ce9ca500-ce62-11e9-90de-0d751ef3c4b1.png" alt="implement"></p>
 <h2 id="LSH算法"><a href="#LSH算法" class="headerlink" title="LSH算法"></a>LSH算法</h2><p>通过MinHash算法,可以为每一个集合生成一个Hash值.如果要找到两个相似的集合,一般的算法需要比较$\Theta(N^2)$次,当N比较大的时候,就不太现实了.继续看MinHash的实现,我们可以看到对于同一组$r$个MinHash函数,两个集合hash之后得到相同的Hash值的概率为$sim(C1,C2)^r$,不同的概率为$1-sim(C1,C2)^r$.将K个MinHash函数分成$b$组,那么这$b$组hash值至少有一个相同的概率为:$1-(1-sim(C1,C2)^r)^b$.如果两个集合相似度为0.8,当$r=5,b=20$时,至少有一组hash值相同的概率为$1-0.00036=0.99964$.对于LSH算法,我们希望如果两个集合相似度小于某一个阈值的时候,出现相同hash值的概率越低越好,高于一定的阈值,那么概率值越大越好. $f(r,b;x)=(1-x^r)^b$就能够很好的满足这一点.<br>函数的分布如下所示:<br><img src="https://user-images.githubusercontent.com/5286725/64155448-64393400-ce65-11e9-8ae2-d0dcd1708950.png" alt="f(r,b;x)"></p>

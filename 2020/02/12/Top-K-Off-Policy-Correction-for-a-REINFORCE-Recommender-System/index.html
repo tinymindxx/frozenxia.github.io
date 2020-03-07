@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -250,7 +250,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>论文提出了一个适用于<em>Top-K</em>推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的<em>Top-K off-policy</em>策略用于处理同一时间的多个<em>item</em>;展示了探索的意义.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>论文提出了一个适用于<em>Top-K</em>推荐系统的通用RL算法,该算法第一次将RL算法推广到了百万级的生产系统之中;采用off-policy对学习过程中的bias进行修正;提出了一个比较好的<em>Top-K off-policy</em>策略用于处理同一时间的多个<em>item</em>;展示了探索的意义.<br><a id="more"></a></p>
 <h3 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a><em>Introduction</em></h3><p>推荐系统需要持续的适应用户的兴趣变化(<em>state</em>),给大量的用户推荐合适的内容.但是目前用户通常只被曝光了很小一部分的内容,至于有显示反馈(<em>feedback</em>)的内容就更少了,因此并没有多少关于大量用户状态和空间的数据.对于成熟的工业系统,上述问题会变得更加严重,因为用户的状态和空间在持续增加,新的<em>items</em>的显示反馈就更加稀疏了.作者以<em>Reinforce Learning</em>算法为基础,构建了一个后选集生成器(<em>top-K recommender system</em>),用于处理超大规模的用户状态和空间.要构建这样一个系统,还需要解决训练数据的问题.RL推荐系统是无法通过<em>self-play</em>和<em>simulation</em>获得数据的,因为无法得知<em>reward</em>是多少.为了解决这个问题,作者提出了一个<em>off-policy</em>方法,在训练模型学习先前的策略的同时对数据中的<em>bias</em>进行修正.虽然标准的<em>off-policy</em>对于<em>top-1</em>系统是非常优秀的,但是<em>top-K</em>系统能带来更大的优势.论文的主要贡献有:</p>
 <ul>
 <li>将<em>Reinforce policy-gradient-base</em>方法拓展到超大的推荐系统空间中;</li>

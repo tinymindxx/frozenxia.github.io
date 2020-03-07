@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:<br>$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&lt; g_{\tau},w&gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \right\}\tag{1}$$<br><a id="more"></a><br>其中,$h(w)$是一个辅助强convex函数,$\{\beta_{t}\}_{t\geq 1}$是一个非负且非递减的序列,决定了算法的收敛特性.在每一轮迭代过程中$(1)$式会最小化三个部分的和:(1)对之前的次梯度进行平均的线性部分;(2)原始的正则函数$\Psi (w)$;(3)附加的强convex正则模块$\frac{\beta_{t}}{t}h(w)$.</p>
+        <span itemprop="articleBody"><p>Regularized dual averaging(RDA) 算法相比先前的方法,能够更有效的利用Regularization.RDA权重更新策略如下:<br>$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&lt; g_{\tau},w&gt;+\Psi(w) + \frac{\beta_{t}}{t}h(w) \right\}\tag{1}$$<br><a id="more"></a><br>其中,$h(w)$是一个辅助强convex函数,$\{\beta_{t}\}_{t\geq 1}$是一个非负且非递减的序列,决定了算法的收敛特性.在每一轮迭代过程中$(1)$式会最小化三个部分的和:(1)对之前的次梯度进行平均的线性部分;(2)原始的正则函数$\Psi (w)$;(3)附加的强convex正则模块$\frac{\beta_{t}}{t}h(w)$.</p>
 <h3 id="l-1-RDA"><a href="#l-1-RDA" class="headerlink" title="$l_1$-RDA"></a>$l_1$-RDA</h3><p>令$\Psi(w)=\lambda |w|_1,\lambda &gt;0,h(w)=\frac{1}{2}|w|_{2}^{2},\beta_{t}=\gamma \sqrt{t}$,代入公式$(1)$中,有:<br>$$w_{t+1}=\underset{w}{argmin}\left\{ \frac{1}{t} \sum_{\tau=1}^{t}&lt; g_{\tau},w&gt;+ \lambda |w|_1+ \frac{\gamma}{2\sqrt{t}}|w|_{2}^{2} \right\}\tag{2}$$<br>我们可以将公式(2)分解到每一个维度上,有<br>$$w_{t+1}^{(i)}=\underset{w}{argmin}\left\{ \bar{g_{\tau}}^{(i)}w^{(i)}+ \lambda |w^{(i)}|_1+ \frac{\gamma}{2\sqrt{t}} {w^{(i)}}^{2}\right\}\tag{3}$$<br>其中$\bar{g_{\tau}}^{(i)}=\frac{1}{t} \sum_{\tau=1}^{t}g_{\tau}^{(i)}$.考虑<br>$$\underset{w\in \mathbb{R}}{minimize} \;\eta_{t}w+\lambda_{t}|w|+\frac{\gamma_{t}}{2}w^2\tag{4}$$<br>,其中$\lambda_{t}&gt;0$,$\gamma_{t}&gt;0$,$\eta_{t}$为任意值,当存在$\xi\in\partial|w^*|$时,满足$(3)$的$w^*$存在:<br>$$\eta_t + \lambda_t\xi + \gamma_tw^*=0\tag{5}$$</p>
 <p>$|w|$的次梯度为:<br>$$<br>\partial |w|=\begin{cases}<br>\{ \xi \in \mathbb{R} | -1 \leq \xi \leq 1 \} &amp;if \, w=0 \cr<br>\{1\}&amp;if \, w&gt;0  \cr<br>\{-1\}&amp;if \, w&lt;0<br>\end{cases}<br>$$<br>对$(5)$分三种情况讨论:</p>
 <ol>

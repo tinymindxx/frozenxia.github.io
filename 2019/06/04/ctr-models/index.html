@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -253,7 +253,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>CTR预估模型已经LR和FM单一模型逐步发展到FM+深度网络，LR+深度网络，LR+Tree等多种混合模型。本文将逐一介绍目前主流的CTR预估模型，梳理以下这些模型的发展脉络。<br><a id="more"></a></p>
 <h3 id="Logistic-Regression"><a href="#Logistic-Regression" class="headerlink" title="Logistic Regression"></a>Logistic Regression</h3><p>LR模型（Logistic Regression）可以理解为在线性回归的基础上，对结果使用logistic函数作变形。Logistic函数的形式为:<br>$$\phi(z)=\frac{1}{1+e^{-z}}$$<br>Logistic函数将线性回归的值域限定在$[0,1]$范围之内,函数在两端非常不敏感($x&lt;-4||x&gt;4$),因而对噪声具有更好的适应能力.通常logistic的输出值以0.5为界,转换成0,1.机器学习模型实质上就是把决策函数限定在某一具体条件之下,这组条件就决定了模型的假设空间.这组假设通常希望比较简单且合理,逻辑回归的模型假设是:<br>$$P(y=1|x;\theta) = g(\theta^{T}x)=\frac{1}{1+e^{-\theta^{T}*x}}$$<br>模型的数学形式确定之后,就可以求其中的参数了.对LR模型,通常采用最大似然估计,也就是找到使得数据的似然估计(概率)最大的一组参数.LR模型的似然估计可以表示为:<br>$$L(\theta) = P(D|\theta) = \prod P(y|x;\theta)\dots(1)$$<br>其中,$P(y=1|x;\theta)=g(\theta^{T}x),P(y=0|x;\theta)=1-g(\theta^{T}x)$,因此有,$$P(y|x;\theta)=g(\theta^Tx)^{y}(1-g(\theta^Tx))^{1-y}\dots(2)$$<br>将(2)代入(1)中,有$$L(\theta) = P(D|\theta) = \prod g(\theta^Tx)^{y}(1-g(\theta^Tx))^{1-y}$$<br>取对数得到:<br>$$l(\theta) =  \sum y\log g(\theta^Tx)+(1-y)\log(1-g(\theta^Tx))$$<br>$l(\theta)$就是LR的对数似然函数.寻找合适的$\theta$就是寻找使得$l(\theta)$最大的$\theta$.<br>LR模型实际使用的损失函数是cross-entropy函数,亦即:<br>$$J(\theta)=\frac{1}{m}\sum_{i=1}^{m}Cost(g{\theta^Tx^{(i)}},y^{(i)})=-\frac{1}{m}\sum_{i=1}^{m} y^{(i)}\log g(\theta^Tx^{(i)})+(1-y^{(i)})\log(1-g(\theta^Tx^{(i)}))$$<br>可以看出,当$l(\theta)$最大时,$J(\theta)$最小.<strong>LR也可以采用其他的损失函数,但是我们不应该使用MSE,MSE导致损失函数非凸,存在多个局部最小点.</strong>采用cross-entropy作为损失函数有一个好处,不论y=1还是y=0,函数都是单调的.<br><img src="https://user-images.githubusercontent.com/5286725/61364231-01410d00-a8b8-11e9-86dd-e5cc8ec729b0.png" alt="image"></p>
 <p><strong>这里需要强调一点,上面推导出来的对数似然函数也可以看作是一种损失函数,它也是模型的goodness of fit的指标.</strong><br>采用cross-entropy作为损失函数,那么LR模型的参数更新过程为:<br>$$<br>\begin{equation}<br>\begin{split}<br>\frac{\partial J(t)}{\partial t}&amp;=\frac{\partial(y \log g(t) + (1-y)\log (1-g(t)))}{\partial t}\\<br>&amp;=y\frac{g’(t)}{g(t)} \partial t + (1-y)\frac{-g’(t)}{1-g(t)} \partial t<br>\end{split}<br>\end{equation}<br>\dots(3)<br>$$<br>由于,$g(t)=\frac{1}{1+e^{-t}}$,因此$g’(t)=g(t)(1-g(t)) \dots(4)$</p>
 <p>(4)代入(3),得到<br>$$<br>\begin{equation}<br>\begin{split}<br>\frac{\partial J(t)}{\partial t}&amp;=y-g(t)<br>\end{split}<br>\end{equation}<br>\dots(3)<br>$$<br>所以,$\frac{\partial J(\theta)}{\partial \theta }=(y-g(\theta^Tx))x$ $\theta$迭代更新的公式为:<br>$$\theta_{i+1} := \theta_{i} + \alpha((y^{(i+1)}-g(\theta^Tx^{(i+1)}))x^{(i+1)})$$<br>通常LR的迭代方法有SGD,BFGS或者FTRL等,迭代优化算法不在此展开了.</p>

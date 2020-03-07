@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>奇异值分解是一种有效的降维手段,通过将矩阵$A$分解成三个比较小的矩阵的乘积,能够有效的减少维度.在了解奇异值分解之前,首先需要了解特征值和特征向量.<br><a id="more"></a><br>特征向量的定义如下:<br>$$Ax=\lambda x$$<br>其中,A是一个$n*n$的矩阵,$x$是一个n维向量矩阵,则$\lambda$称为$A$的一个特征值,$x$称为$\lambda$对应的特征向量.<br>如果我们求出了n个特征值,$\lambda_1 \leq\lambda_2 …\leq\lambda_n $,以及这n个特征值对应的向量$w_1,w_1,…,w_1$,那么$A$就可以用以下特征分解表示:<br>$$A=W\Sigma W^{-1}$$<br>其中,$W$是由特征向量组成的,通常会将$w_i$标准化,也就是$|w_i|_2=1$,或者说$w_i^{T}w_i=1$<br>矩阵分解要求矩阵$A$必须为方阵,SVD则没有这个要求.SVD的定义如下:<br>$$A=U\Sigma V^{T}$$<br>其中$A$是m*n的矩阵,$U$是m*m的矩阵,$\Sigma$是m*n的矩阵,除了对角线上之外,其他的都是0,$V$是n*n的矩阵.$V,U$都是酉矩阵,也就是$V^TV=1$.<br>那么$U$,$V$如何结算呢?其实,$U$,$V$分别是$AA^T$ 和$A^TA$的特征向量.至于$\Sigma$,我们有:<br>$$A=U\Sigma V^{T}\;\Rightarrow\; AV=\Sigma V\; \Rightarrow \; Av_i=\sigma_iu_i\; \Rightarrow \;\sigma_i=Av_i/u_i$$</p>
+        <span itemprop="articleBody"><p>奇异值分解是一种有效的降维手段,通过将矩阵$A$分解成三个比较小的矩阵的乘积,能够有效的减少维度.在了解奇异值分解之前,首先需要了解特征值和特征向量.<br><a id="more"></a><br>特征向量的定义如下:<br>$$Ax=\lambda x$$<br>其中,A是一个$n*n$的矩阵,$x$是一个n维向量矩阵,则$\lambda$称为$A$的一个特征值,$x$称为$\lambda$对应的特征向量.<br>如果我们求出了n个特征值,$\lambda_1 \leq\lambda_2 …\leq\lambda_n $,以及这n个特征值对应的向量$w_1,w_1,…,w_1$,那么$A$就可以用以下特征分解表示:<br>$$A=W\Sigma W^{-1}$$<br>其中,$W$是由特征向量组成的,通常会将$w_i$标准化,也就是$|w_i|_2=1$,或者说$w_i^{T}w_i=1$<br>矩阵分解要求矩阵$A$必须为方阵,SVD则没有这个要求.SVD的定义如下:<br>$$A=U\Sigma V^{T}$$<br>其中$A$是m*n的矩阵,$U$是m*m的矩阵,$\Sigma$是m*n的矩阵,除了对角线上之外,其他的都是0,$V$是n*n的矩阵.$V,U$都是酉矩阵,也就是$V^TV=1$.<br>那么$U$,$V$如何结算呢?其实,$U$,$V$分别是$AA^T$ 和$A^TA$的特征向量.至于$\Sigma$,我们有:<br>$$A=U\Sigma V^{T}\;\Rightarrow\; AV=\Sigma V\; \Rightarrow \; Av_i=\sigma_iu_i\; \Rightarrow \;\sigma_i=Av_i/u_i$$</p>
 <p>进一步我们可以发现:<br>$$AA^T=U\Sigma V^T V \Sigma ^T U^T = U \Sigma ^2 U^T$$<br>所以,只要求出$AA^T$的特征值,那么$\sigma_i = \sqrt{\lambda_i}$</p>
 </span>
       

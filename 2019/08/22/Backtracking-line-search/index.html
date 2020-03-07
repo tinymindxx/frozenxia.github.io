@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>机器学习中,通常需要寻找某个函数的最值(最大值或者最小值),其中一种有效的方法就是Line Search(另一种是Trust Region).其思想是沿着梯度方向下降,从而不断接近最小值.<br><a id="more"></a><br>首先引入系数$\alpha_k$,$c_1\in(0,1)$,函数$f(x)$的导数为$\nabla f(x) &lt;0$,那么有$\nabla f(x) &lt; c_1\nabla f(x)$.<br>所以,我们可以得到<br>$$\mathop{lim}_{\alpha_k d_k \to 0} \frac{f(x_k+\alpha_k d_k)-f(x_k)}{\alpha_k d_k }  = \nabla f(x_k) &lt; c_1  \nabla f(x)$$<br>也就是说,当$\alpha_k$足够小的时候,有$\frac{f(x_k+\alpha_k d_k)-f(x_k)}{\alpha_k d_k } \leq c_1  \nabla f(x)$,将上述不等式进行化简之后我们可以得到:$$f(x_k+\alpha_k d_k)  \leq f(x_k) + {\alpha_k d_k } c_1  \nabla f(x)$$<br>通常我们会取$d_k = \nabla f(x_k)$.要找到合适的$\alpha_k$,我们可以用迭代法,令$\gamma \in (0,1)$,经过n次迭代之后就可以得到:$\gamma ^n \leq \alpha_k$.</p>
+        <span itemprop="articleBody"><p>机器学习中,通常需要寻找某个函数的最值(最大值或者最小值),其中一种有效的方法就是Line Search(另一种是Trust Region).其思想是沿着梯度方向下降,从而不断接近最小值.<br><a id="more"></a><br>首先引入系数$\alpha_k$,$c_1\in(0,1)$,函数$f(x)$的导数为$\nabla f(x) &lt;0$,那么有$\nabla f(x) &lt; c_1\nabla f(x)$.<br>所以,我们可以得到<br>$$\mathop{lim}_{\alpha_k d_k \to 0} \frac{f(x_k+\alpha_k d_k)-f(x_k)}{\alpha_k d_k }  = \nabla f(x_k) &lt; c_1  \nabla f(x)$$<br>也就是说,当$\alpha_k$足够小的时候,有$\frac{f(x_k+\alpha_k d_k)-f(x_k)}{\alpha_k d_k } \leq c_1  \nabla f(x)$,将上述不等式进行化简之后我们可以得到:$$f(x_k+\alpha_k d_k)  \leq f(x_k) + {\alpha_k d_k } c_1  \nabla f(x)$$<br>通常我们会取$d_k = \nabla f(x_k)$.要找到合适的$\alpha_k$,我们可以用迭代法,令$\gamma \in (0,1)$,经过n次迭代之后就可以得到:$\gamma ^n \leq \alpha_k$.</p>
 </span>
       
     </div>

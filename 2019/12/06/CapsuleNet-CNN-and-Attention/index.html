@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>CapsuleNet,CNN和Attention是三个看起来完全没有联系的三种网络结构,但是如果我们仔细的观察以下Attention与CNN,Attention与CapsuleNet的结构,我们就会发现他们之间还是存在很多联系的.Attention我们可以理解为内容上的CNN,CNN可以理解为位置上的Attention,至于Capsulenet与Attention,这两种网络都有使用相似性来表示当前数据,后面我们会从原理上逐一讲明他们之间在原理上的相似性,以及这些相似性可能会给现有的网络结构带来那些改变.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>CapsuleNet,CNN和Attention是三个看起来完全没有联系的三种网络结构,但是如果我们仔细的观察以下Attention与CNN,Attention与CapsuleNet的结构,我们就会发现他们之间还是存在很多联系的.Attention我们可以理解为内容上的CNN,CNN可以理解为位置上的Attention,至于Capsulenet与Attention,这两种网络都有使用相似性来表示当前数据,后面我们会从原理上逐一讲明他们之间在原理上的相似性,以及这些相似性可能会给现有的网络结构带来那些改变.<br><a id="more"></a></p>
 <h3 id="CapsuleNet"><a href="#CapsuleNet" class="headerlink" title="CapsuleNet"></a>CapsuleNet</h3><p>CapsuleNet是Hinton在<dynamic routing between capsules>提出来的.Hinton对Capusle的定义是: A capsule is a group of neurons  whose <strong>activity vector</strong> represents the instantiation parameters of <strong>a specific type</strong> of entity such as an object or an object part. Capsule利用activity vector的长度 (length) 作为entity存在的概率 (probability),利用其指向 (orentation) 来表示instantiation parameter (<strong>我们可以将capsule理解为一种思路,而不用照搬其具体的实现,因此length作为probability可以根据实际情况进行变动的,这里不要被它的原本设计限制住了</strong>). 被激活的Capsule (Active capsule) 通过转换矩阵为高一层级给出预测结果,当多中预测结果达成共识之后,高一层的capsule被激活(Active capsules at one level make predictions, via transformation matrics, for the instantiation parameters of higer-level capsules).为了达到这个目标,CapusleNet通过一个迭代路由机制(iterative routing mechanism):低层次的capsule倾向于将输出还给与其相似性更大的高层capsule(A lower-level capsule prefers to send its output to higher level capsules whose activity vectros have a big scalar product with the prediction comping from the lower level capsule).<br>Hinton认为人的视觉系统通过一系列的固定点(sequence of fixation points)来忽略不相干的细节,从而保证以最高解析度解析一小部分的数据.单个的固定点(fixation point)能够带来除单个被识别的物体及其特征之外更多的信息,并且忽略多个fixation point之间的相互协调关系.通常为了表示图像中某个特镇是否存在,最简单的办法是利用logistic单元,但是Hinton提出的capsule使用vector of instantiation parameters 的长度来表示entity存在的概率.每个capusle的输出是一个向量,因此可以使用动态路由策略来保证capsule的输出被传送到合适的父层(parent layer).动态路由的基本思路是:</dynamic></p>
 <ol>
 <li>capusle将自己的输出vector与一个weight matrix 相乘得到 prediction vector;</li>

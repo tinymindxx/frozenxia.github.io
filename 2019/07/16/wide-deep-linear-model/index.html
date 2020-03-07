@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -248,7 +248,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>Wide&amp;Deep模型结合了LR模型和DNN，LR和DNN部分通过联合训练，提高效果。wide&amp;deep模型的联合训练（joint）与集成（ensemble）不一样，联合训练过程中LR和DNN的参数会同时被优化，而集成过程在训练阶段LR和DNN是独立的，只有最终结果被集成在一起。<br><a id="more"></a><br>Wide&amp;Deep模型的数学表达式为：<br>$$P(Y=1\|x)=\sigma(w^{T}_{wide}[x,\phi(x)] + w^{T}_{deep}\alpha^{(lf)} +b )$$<br>wide部分最重要的操作是cross-production，也就是特征交叉,数学定义为：<br>$$\phi(x)=\prod_{i=1}^{d}x_{i}^{c_{ki}},c_{ki}\in\{0,1\}$$<br>对于binary变量，交叉结果只有在所有变量都为真的时候才为真，例如AND（gender=female，language=en）只有在gender=female 且 language=en时，才为真。<br>Wide&amp;Deep模型虽然将LR和DNN模型联合训练，但是在变量one-hot或者embedding时都是独立的，我们可以简单理解为Wide&amp;Deep模型只在结果处合并了两个模型（通过+操作），其余部分都是分离的。Wide&amp;Deep模型的结构如下：<br><img src="https://user-images.githubusercontent.com/5286725/61341740-3595d880-a87a-11e9-9b94-bdae8e43fef8.png" alt="2019-07-17 10-01-42 的屏幕截图"><br>可以很明显看出，LR和DNN的输入没有重叠，也就是变量独立进入LR和DNN的,这一点与其他的模型会有不同。<br>Wide&amp;Deep模型的输入数据一般包括两种，分类变量和数值变量。分类变量需要筛除出现次数少于一定频次的变量，数值变量需要对数值进行归一化操作，将值域转换到$[0，1]$范围内。数值变量转换时，通过累计密度函数进行转换，$P(X \leq x)$ 分成N段，第i段归一化之后的值为$\frac{i-1}{n_{q}-1}$.</p>
+        <span itemprop="articleBody"><p>Wide&amp;Deep模型结合了LR模型和DNN，LR和DNN部分通过联合训练，提高效果。wide&amp;deep模型的联合训练（joint）与集成（ensemble）不一样，联合训练过程中LR和DNN的参数会同时被优化，而集成过程在训练阶段LR和DNN是独立的，只有最终结果被集成在一起。<br><a id="more"></a><br>Wide&amp;Deep模型的数学表达式为：<br>$$P(Y=1\|x)=\sigma(w^{T}_{wide}[x,\phi(x)] + w^{T}_{deep}\alpha^{(lf)} +b )$$<br>wide部分最重要的操作是cross-production，也就是特征交叉,数学定义为：<br>$$\phi(x)=\prod_{i=1}^{d}x_{i}^{c_{ki}},c_{ki}\in\{0,1\}$$<br>对于binary变量，交叉结果只有在所有变量都为真的时候才为真，例如AND（gender=female，language=en）只有在gender=female 且 language=en时，才为真。<br>Wide&amp;Deep模型虽然将LR和DNN模型联合训练，但是在变量one-hot或者embedding时都是独立的，我们可以简单理解为Wide&amp;Deep模型只在结果处合并了两个模型（通过+操作），其余部分都是分离的。Wide&amp;Deep模型的结构如下：<br><img src="https://user-images.githubusercontent.com/5286725/61341740-3595d880-a87a-11e9-9b94-bdae8e43fef8.png" alt="2019-07-17 10-01-42 的屏幕截图"><br>可以很明显看出，LR和DNN的输入没有重叠，也就是变量独立进入LR和DNN的,这一点与其他的模型会有不同。<br>Wide&amp;Deep模型的输入数据一般包括两种，分类变量和数值变量。分类变量需要筛除出现次数少于一定频次的变量，数值变量需要对数值进行归一化操作，将值域转换到$[0，1]$范围内。数值变量转换时，通过累计密度函数进行转换，$P(X \leq x)$ 分成N段，第i段归一化之后的值为$\frac{i-1}{n_{q}-1}$.</p>
 </span>
       
     </div>

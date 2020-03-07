@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>假设有N个IP区间段，区间可能会有重叠，每个区间会有一个名称，给定IP之后，求改IP属于哪些IP段？</p>
+        <span itemprop="articleBody"><h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>假设有N个IP区间段，区间可能会有重叠，每个区间会有一个名称，给定IP之后，求改IP属于哪些IP段？</p>
 <h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>利用区间树来划分整个IP段。区间树在设计的时候，如果IP区间完全覆盖树的节点，就到此停止；否则将该节点等分成两部分，分别构建区间树。</p>
 <a id="more"></a>
 <h3 id="测试数据"><a href="#测试数据" class="headerlink" title="测试数据"></a>测试数据</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> <span class="number">10</span> <span class="number">0</span><span class="number">-10</span></span><br><span class="line"><span class="number">8</span> <span class="number">12</span> <span class="number">8</span><span class="number">-12</span></span><br><span class="line"><span class="number">9</span> <span class="number">15</span> <span class="number">9</span><span class="number">-15</span></span><br><span class="line"><span class="number">11</span> <span class="number">14</span> <span class="number">11</span><span class="number">-14</span></span><br><span class="line"><span class="number">20</span> <span class="number">27</span> <span class="number">20</span><span class="number">-27</span></span><br></pre></td></tr></table></figure>

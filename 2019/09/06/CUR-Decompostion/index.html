@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -250,7 +250,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>SVD分解算法得到三个分解矩阵$U,\Sigma和V$,其中$U,V$都是大且稠密的矩阵,$\Sigma$是稀疏且较小的矩阵.考虑到存储空间以及效率,我们更希望得到的分解满足$U,V$大且稀疏,$\Sigma$稠密且小.CRU分解算法就是这样一种分解算法.<br><a id="more"></a><br>CRU算法对矩阵$A$的分解结果为:<br>$$A \approx C U R$$<br>通过对$C,R$进行限制,使得$|A-C\cdot R\cdot U|_F$较小.$C,R$都是根据概率Sample出来的,W为C,R交叉得到的矩阵.<br><img src="https://user-images.githubusercontent.com/5286725/64402849-d483c780-d0a8-11e9-85a5-6aec96b3a167.png" alt="w"><br>令$W^+$为$W$的伪逆.$W$的SVD分解为$W=XZY^T$,那么$W^+=YZ^+X^T$,其中$Z_{ii}^+ = 1/Z_{ii}$,由于$W=XZY^T$,那么$W^{-1}={(Y^T)}^{-1}Z^{-1}X^{-1}$,而$X^{-1}=X^T,Y^{-1}=Y^T$,且$Z$是对角矩阵,所以$Z^{-1}=1/Z_{ii}$.因此,如果$W$是非奇异的,那么伪逆就是真的逆了.</p>
+        <span itemprop="articleBody"><p>SVD分解算法得到三个分解矩阵$U,\Sigma和V$,其中$U,V$都是大且稠密的矩阵,$\Sigma$是稀疏且较小的矩阵.考虑到存储空间以及效率,我们更希望得到的分解满足$U,V$大且稀疏,$\Sigma$稠密且小.CRU分解算法就是这样一种分解算法.<br><a id="more"></a><br>CRU算法对矩阵$A$的分解结果为:<br>$$A \approx C U R$$<br>通过对$C,R$进行限制,使得$|A-C\cdot R\cdot U|_F$较小.$C,R$都是根据概率Sample出来的,W为C,R交叉得到的矩阵.<br><img src="https://user-images.githubusercontent.com/5286725/64402849-d483c780-d0a8-11e9-85a5-6aec96b3a167.png" alt="w"><br>令$W^+$为$W$的伪逆.$W$的SVD分解为$W=XZY^T$,那么$W^+=YZ^+X^T$,其中$Z_{ii}^+ = 1/Z_{ii}$,由于$W=XZY^T$,那么$W^{-1}={(Y^T)}^{-1}Z^{-1}X^{-1}$,而$X^{-1}=X^T,Y^{-1}=Y^T$,且$Z$是对角矩阵,所以$Z^{-1}=1/Z_{ii}$.因此,如果$W$是非奇异的,那么伪逆就是真的逆了.</p>
 <h3 id="Sampling-columns"><a href="#Sampling-columns" class="headerlink" title="Sampling columns"></a>Sampling columns</h3><p>samping的过程如下:<br><img src="https://user-images.githubusercontent.com/5286725/64403213-4c062680-d0aa-11e9-8b00-ec74e95fcfb9.png" alt="sampling"></p>
 <p>最后,分解过程如下:<br><img src="https://user-images.githubusercontent.com/5286725/64403295-98516680-d0aa-11e9-8045-880cd9b9f39f.png" alt="decomposition"></p>
 </span>

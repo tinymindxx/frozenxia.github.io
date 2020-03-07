@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -248,7 +248,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>Truncated Gradient是一种能够为在线学习（Online learning）任务引入稀疏（Sparsity）性的通用方法，它有以下几个特点：<br>1.sparsity的程度是连续的，可以通过调整参数控制sparsity的比例；<br>2.方法有理论支持；<br>3.实践过程中，这个方法运行的比较好；<br><a id="more"></a><br>很多常用的算法会在数据量比较大的情况下难以运行，比如数据量超过$10^7$,特征超过$10^9$.目前基本上只有两种方法能够运行:<br>1.并行批处理;(Chu et al 2008)<br>2.在线学习(Online learning)流数据(stream)<br>文章提出的方法属于Online learning,典型的Online learning算法对于每一个特征至少有一个权值(weight),对某些应用这些权值就太多了会有以下两个问题:<br>1.space constraint,数据无法完全载入内存或者L2;<br>2.数据测试时间太常;<br>目前解决上述问题的方法包括:简单引入L1但是这种方法并不能够引入稀疏性,将较小权值直接置为0会导致灾难性后果以及黑盒训练判断特征重要性但是太耗时.</p>
+        <span itemprop="articleBody"><p>Truncated Gradient是一种能够为在线学习（Online learning）任务引入稀疏（Sparsity）性的通用方法，它有以下几个特点：<br>1.sparsity的程度是连续的，可以通过调整参数控制sparsity的比例；<br>2.方法有理论支持；<br>3.实践过程中，这个方法运行的比较好；<br><a id="more"></a><br>很多常用的算法会在数据量比较大的情况下难以运行，比如数据量超过$10^7$,特征超过$10^9$.目前基本上只有两种方法能够运行:<br>1.并行批处理;(Chu et al 2008)<br>2.在线学习(Online learning)流数据(stream)<br>文章提出的方法属于Online learning,典型的Online learning算法对于每一个特征至少有一个权值(weight),对某些应用这些权值就太多了会有以下两个问题:<br>1.space constraint,数据无法完全载入内存或者L2;<br>2.数据测试时间太常;<br>目前解决上述问题的方法包括:简单引入L1但是这种方法并不能够引入稀疏性,将较小权值直接置为0会导致灾难性后果以及黑盒训练判断特征重要性但是太耗时.</p>
 <h3 id="Simple-Coefficient-Rounding"><a href="#Simple-Coefficient-Rounding" class="headerlink" title="Simple Coefficient Rounding"></a>Simple Coefficient Rounding</h3><p>为了制造稀疏性(sparsity),通常的办法是每间隔$K$轮对比较小的权值作round(不大于$\theta$)操作.如果$i\%K!=0$就采用标准的GD(gradient descent);如果$i\%K==0$,按照如下规则更新:<br>$$f(w_i)=T_0(w_i-\eta \nabla _1L(w_i,z_i),\theta)$$<br>其中,$v=[v_1,…,v_d] \in R^d$,$\theta \ge 0$,$T_0(v,\theta)=[T_0(v_1,\theta),…,T_0(v_d,\theta)]$,$T_0$的定义如下:<br>$$<br> T_{0}(v_j,\theta)=\begin{cases}0, &amp;if \left |v_j \right |\leq \theta \cr v_j, &amp;otherwise\end{cases}<br>$$<br>通常情况下,$K$不会设置为1,尤其是但$\eta$比较小的时候,这是因为每一步对$w_i$只进行很小的更新,而rouding操作会将它又重新设置为0.因此$K$的设置对于结果比较重要,其次,这种方法缺乏理论支持.</p>
 <h3 id="Truncated-Gradient"><a href="#Truncated-Gradient" class="headerlink" title="Truncated Gradient"></a>Truncated Gradient</h3><p>简单的Rounding策略太激进了,一个稍微温和的方案是将系数稍微减少一些,减少系数成为$gravity$且$g_i&gt;0$.<br>$$f(w_i)=T_1(w_i-\eta \nabla _1 L(w_i,z_i),\eta g_i,\theta)$$<br>其中,$T_1$定义如下:<br>$$<br> T_{1}(v_j,\alpha,\theta)=\begin{cases}max(0,v_j-\alpha) &amp;if \, v_j \in [ 0,\theta ] \cr min(0,v_j+\alpha) &amp;if\, v_j \in [ -\theta,0 ] \cr v_j  &amp; otherwise\end{cases}<br>$$<br>其图形如下所示:<br><img src="https://user-images.githubusercontent.com/5286725/61634523-122cbc80-acc4-11e9-9c5f-cf0477a5e970.png" alt="td"></p>
 <p>对$T_1$稍作变换,可以得到:<br>$$<br> T_{1}(w,\lambda,\theta)=\begin{cases}0 &amp;if \, |w| \leq \lambda \cr w-\lambda sign(w) &amp;if\, \lambda \leq |w| \leq \theta \cr w  &amp; otherwise\end{cases}<br>$$</p>

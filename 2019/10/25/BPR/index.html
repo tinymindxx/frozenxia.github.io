@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -246,7 +246,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>LR(Learn To Rank)是通过已有的数据学习item之间的排序关系,主要分为Pointwise,PaireWise和Listwise三类.其中Pairwise是用的比较多的一类,本文介绍的BPR就属于这一类,本文介绍LR的评测指标和BPR算法的细节.<br><a id="more"></a></p>
 <h3 id="LR评测指标"><a href="#LR评测指标" class="headerlink" title="LR评测指标"></a>LR评测指标</h3><p>在讲BPR之前,首先需要弄明白LR的评测指标是什么.有了评测指标,我们才可以对系统进行有效的评测.给用户$u$推荐的物品列表为$X$,其中每一个$x_i$与用户$u$的关联程度用$rel_i$表示.假设列表最多有$p$个物品,那么累计收益(Comulative Gain)的计算方式为:<br>$$<br>CG_p = \sum_{i=1}^{p} rel_i \tag{1}<br>$$<br>但是$(1)$有个问题,就是对于推荐系统而言,越是在显著位置(靠前)的重要程度越高,因此最好的选择是将最优的推荐结果放在最好的位置.为了体现这一点,我们引入一个衰减比例,或者称为Discounting.这样$(1)$就变成了以下:<br>$$<br>DCG_p = \sum_{i=1}^{p} \left (\frac{rel_i}{\log _2(i+1)} \right) \tag{2}<br>$$<br>$(2)$式也可以换乘其他的形式,当$rel_i \in \{0,1\}$比如:</p>
 <p>$$<br>DCG_p = \sum_{i=1}^{p} \left (\frac{2^{rel_i} -1}{\log _2(i+1)} \right) \tag{3}<br>$$</p>
 <p>$(2)$式有一个缺点,当$p$的个数增多的时候,$DCG_p$会单调增大,不利于$p$值比较小的训练数据.因此需要对$DCG_p$作归一化处理.这里我们假设在特定$p$值下,推荐列表$X$最佳的排列顺序为$IDCG_p$.那么归一化的$DCG_p$为:<br>$$<br>nDCG_p = \frac { \sum_{i=1}^{p} \left (\frac{2^{rel_i} -1}{\log _2(i+1)} \right) } {IDCG_p} \tag{4}<br>$$</p>

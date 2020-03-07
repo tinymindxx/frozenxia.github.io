@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -248,7 +248,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>DeepFM模型是在FM模型基础上，结合了深度学习的相关技术，能够对CTR进行有效预测。在了解DeepFM模型之前，我们首先需要理解一下什么是FM模型。<br><a id="more"></a><br>FM（Factorization Machine）模型是Steffen Rendle提出来的，主要目的是解决现有模型无法有效的捕捉变量之间的复杂关系。CTR预测需要用到很多分类变量，如性别、地域，通常对这些任务的处理办法是One-hot。One-hot之后会导致输入维度变大并且稀疏，为了计算方便，多数的的模型都是非常浅层的，例如LR。浅层模型比较难以发觉变量之间的关系以及非线性关系，因此需要对不同的变量进行交叉，这种交叉直接使得输入的维度变成百万级别。<br>2阶FM模型的方程为：<br>$$\hat{y}(x):=w_{0}+\sum_{i=1}^{n}w_{i}x_{i}+\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}$$<br>对上述方程进行展开之后，可以得到：<br>$$<br>\begin{array}<br>\\<br>\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}<br>\\<br>= \frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j} - \frac{1}{2}\frac{1}{2}\sum_{i=1}^{n}&lt;v_{i},v_{i}&gt;x_{i}x_{i}<br>\\<br>=\frac{1}{2}(\sum_{i=1}^{n}\sum_{j=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{j,f}x_{i}x_{j} -\sum_{i=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{i,f}x_{i}x_{i})<br>\\<br>= \frac{1}{2}\sum_{f=1}^{k}\lgroup(\sum_{i=1}^{n}v_{i,f}x_{i})^2-\sum_{i=1}^{n}(v_{i,f}x_{i})^2\rgroup<br>\end{array}<br>$$<br>这样，FM的计算就变成了线性了。要求解$v_i，w_0,w_i$，可以通过SGD等方式进行计算。$\hat{y}$关于$v_i，w_0,w_i$的导数为：</p>
+        <span itemprop="articleBody"><p>DeepFM模型是在FM模型基础上，结合了深度学习的相关技术，能够对CTR进行有效预测。在了解DeepFM模型之前，我们首先需要理解一下什么是FM模型。<br><a id="more"></a><br>FM（Factorization Machine）模型是Steffen Rendle提出来的，主要目的是解决现有模型无法有效的捕捉变量之间的复杂关系。CTR预测需要用到很多分类变量，如性别、地域，通常对这些任务的处理办法是One-hot。One-hot之后会导致输入维度变大并且稀疏，为了计算方便，多数的的模型都是非常浅层的，例如LR。浅层模型比较难以发觉变量之间的关系以及非线性关系，因此需要对不同的变量进行交叉，这种交叉直接使得输入的维度变成百万级别。<br>2阶FM模型的方程为：<br>$$\hat{y}(x):=w_{0}+\sum_{i=1}^{n}w_{i}x_{i}+\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}$$<br>对上述方程进行展开之后，可以得到：<br>$$<br>\begin{array}<br>\\<br>\sum_{i=1}^{n}\sum_{j=i+1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j}<br>\\<br>= \frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}&lt;v_{i},v_{j}&gt;x_{i}x_{j} - \frac{1}{2}\frac{1}{2}\sum_{i=1}^{n}&lt;v_{i},v_{i}&gt;x_{i}x_{i}<br>\\<br>=\frac{1}{2}(\sum_{i=1}^{n}\sum_{j=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{j,f}x_{i}x_{j} -\sum_{i=1}^{n}\sum_{f=1}^{k}v_{i,f}v_{i,f}x_{i}x_{i})<br>\\<br>= \frac{1}{2}\sum_{f=1}^{k}\lgroup(\sum_{i=1}^{n}v_{i,f}x_{i})^2-\sum_{i=1}^{n}(v_{i,f}x_{i})^2\rgroup<br>\end{array}<br>$$<br>这样，FM的计算就变成了线性了。要求解$v_i，w_0,w_i$，可以通过SGD等方式进行计算。$\hat{y}$关于$v_i，w_0,w_i$的导数为：</p>
 <p>$$<br>\begin{equation}<br>\frac{\partial}{\partial\theta}\hat{y}(x)=<br>\begin{cases}<br>1&amp; \text{if }\theta\text{ is }w_0\\<br>x_i&amp; \text{if }\theta\text{ is }w_i \\<br>x_i\sum_{j=1}^{n}v_{i,f}x_j-v_{i,f}x_i&amp; \text{if }\theta\text{ is }v_{i,f} \\<br>\end{cases}<br>\end{equation}<br>$$</p>
 <p>除了利用SGD算法进行求解之外，还可以用ftrl进行求导。具体参照：(<a href="http://castellanzhang.github.io/2016/10/16/fm_ftrl_softmax/" target="_blank" rel="noopener">http://castellanzhang.github.io/2016/10/16/fm_ftrl_softmax/</a>)</p>
 <p>DeepFM的结构如下：</p>

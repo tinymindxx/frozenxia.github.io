@@ -1,6 +1,6 @@
 <!doctype html>
 <html class="theme-next use-motion ">
-<head><meta name="generator" content="Hexo 3.8.0">
+<head><meta name="generator" content="Hexo 3.9.0">
   
 
 <meta charset="UTF-8">
@@ -251,7 +251,7 @@
       
 
       
-        <span itemprop="articleBody"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><p>SVM是一个二元分类算法,能够支持线性分类和非线性分类.经过一系列的演变,SVM也能够应用于多元分类和回归问题.SVM在分类问题上有非常好的表现,超越大多数的分类器.<br><a id="more"></a></p>
+        <span itemprop="articleBody"><p>SVM是一个二元分类算法,能够支持线性分类和非线性分类.经过一系列的演变,SVM也能够应用于多元分类和回归问题.SVM在分类问题上有非常好的表现,超越大多数的分类器.<br><a id="more"></a></p>
 <p>首先给出一个非常简单的分类问题(线性可分),利用一条直线将图中黑色点和白色点区分开来,显然图上的直线就是满足要求的直线之一(可以有无数条这样的直线).假如令黑色的点=-1,白色的点=+1,直线$f(x)=wx+b$.这样当图上有一个点需要进行分类的时候,我们利用$sign(f(x))$就可以进行预测了.正如先前提到的,有无数条满足要求的线,哪一条是最优的呢?<br><img src="https://user-images.githubusercontent.com/5286725/65241410-091a6900-db16-11e9-9b38-26837142658c.png" alt="1"><br>第一种思路:让直线到给定样本中最近的点最远.<br><img src="https://user-images.githubusercontent.com/5286725/65241409-091a6900-db16-11e9-853f-7e9cfdc7ab14.png" alt="2"><br>第二种思路:使得分裂间隙最大.<br><img src="https://user-images.githubusercontent.com/5286725/65241408-0881d280-db16-11e9-8f15-c2de634aff11.png" alt="3"><br>直观上来讲,是的分裂间隙最大更高,这样两个类别的点能够分离的最开.在SVM中称为Maximum Marginal,是SVM的理论基础之一.选择间隙最大的函数作为分割平面是有道理的,从概率角度来说,这样是的置信度最小的点置信度最大.图3中被圈出来的红蓝点就是所谓的支撑向量(support vector).<br><img src="https://user-images.githubusercontent.com/5286725/65241664-b55c4f80-db16-11e9-944a-613ce22d1e03.png" alt="4"><br>上图中,红蓝之间的距离就是我们希望最大化的间隙.这里直接给出$M$的的解析式:<br>$$<br>M = \frac {2} {\sqrt{w.w}}<br>$$<br>另外,那些在分界线上的点$y(wx+b)=1$就是支持向量的表达式;<br>这样SVM的优化目标函数就是:<br>$$<br>\max \frac{1} {\|w\|} \to \min \frac{1}{2} \|w\|^2<br>$$<br>除此之外,SVM还有一些其他的限制条件,完整写下来就是这样子:<br>$$<br>\min \frac{1}{2} \|w\|^2 \; s.t.,y_i(w^Tx_i+b) \geq 1,\;i=1,…,n \tag{1}<br>$$<br>$(1)$是一个带有约束的二次规划问题,是一个凸问题,也就是没有局部最小值.要优化这个问题,就需要用到KKT条件,直接得到拉格朗日目标函数:<br>$$<br>\min \limits_{w,b}\max \limits_{a} L(w,b,a)=\frac{1}{2} \|w\|^2 -\sum_{i=1}^{n}a_i(y_i(w^Tx_i+b)-1) \tag{2}<br>$$<br>要诗的$a$最大,直接对$L(w,b,a)$求$w,b$的偏导数=0,得到:</p>
 <p>$$<br>\begin{align}<br> \frac {\partial L}{ \partial w} &amp;= 0 \Rightarrow w=\sum_{i=1}^{n} a_iy_i x_i  \\<br> \frac {\partial L}{ \partial b} &amp;= 0 \Rightarrow \sum_{i=1}^{n} a_iy_i =0<br>\end{align} \tag{3}<br>$$<br>将$(3)$代入$(2)$中得到新问题:<br>$$<br>\max \limits _{a} \sum_{i=1}^{n}a_i - \frac{1}{2} \sum _{i,j=1}^{n} a_ia_jy_iy_jx_i^Tx_j \\<br>s.t., \; a_i \geq 0 ,i=1,…,n \\<br>\sum _{i=1} ^{n} a_iy_i = 0  \tag{4}<br>$$<br>$(4)$可以通过SMO,一种EM算法进行求解.</p>
 <p>SVM还可以对限制条件进行放松$y_i(w^Tx_i+b) \geq 1$放松成$y_i(w^Tx_i+b) \geq 1-\xi _i$.这目标函数中就需要加上惩罚项$C\sum \xi _i$</p>
